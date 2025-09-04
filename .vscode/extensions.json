@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dprint.dprint",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag"
+  ],
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-json"
+  ]
+}

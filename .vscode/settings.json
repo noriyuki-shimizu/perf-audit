@@ -1,0 +1,77 @@
+{
+  // Auto save settings
+  "files.autoSave": "onFocusChange",
+
+  // Default formatter
+  "editor.defaultFormatter": "dprint.dprint",
+
+  // Format on save
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": false,
+
+  // Code actions on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // ESLint settings
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "eslint.format.enable": false,
+  "eslint.codeAction.showDocumentation": {
+    "enable": true
+  },
+
+  // dprint settings
+  "dprint.enable": true,
+  "dprint.path": "./node_modules/.bin/dprint",
+
+  // Language specific formatters
+  "[typescript]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.formatOnSave": true
+  },
+
+  // File associations
+  "files.associations": {
+    "*.config.js": "javascript",
+    "eslint.config.js": "javascript"
+  },
+
+  // Editor settings
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+
+  // Terminal settings for this project
+  "terminal.integrated.env.osx": {
+    "NODE_ENV": "development"
+  }
+}

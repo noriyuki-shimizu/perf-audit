@@ -1,0 +1,93 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(diff:*)",
+      "Bash(cat:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(tree:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(volta:*)",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__delete_memory",
+      "mcp__serena__find_file",
+      "mcp__serena__find_referencing_symbols",
+      "mcp__serena__find_symbol",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__insert_after_symbol",
+      "mcp__serena__insert_before_symbol",
+      "mcp__serena__list_dir",
+      "mcp__serena__list_memories",
+      "mcp__serena__onboarding",
+      "mcp__serena__read_memory",
+      "mcp__serena__remove_project",
+      "mcp__serena__replace_regex",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__restart_language_server",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__switch_modes",
+      "mcp__serena__think_about_collected_information",
+      "mcp__serena__think_about_task_adherence",
+      "mcp__serena__think_about_whether_you_are_done",
+      "mcp__serena__write_memory",
+      "mcp__serena__read_file",
+      "mcp__context7__get-library-docs",
+      "mcp__context7__resolve-library_id"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git stash:*)",
+      "Bash(git rebase:*)",
+      "Bash(git merge:*)",
+      "Read(.env.*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Write(.env*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "serena",
+    "context7"
+  ],
+  "env": {
+    "MAX_MCP_OUTPUT_TOKENS": "100000"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "say \"Confirm, please!\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.stop_hook_active' | grep -q false && say \"Task completed!\""
+          }
+        ]
+      }
+    ]
+  }
+}

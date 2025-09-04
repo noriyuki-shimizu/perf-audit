@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Audit Dashboard</title>
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <h1>📊 Performance Audit Dashboard</h1>
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+            </div>
+        </header>
+        
+        <main class="main">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Builds</h3>
+                    <div class="stat-value" id="totalBuilds">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Size</h3>
+                    <div class="stat-value" id="averageSize">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Last Build Status</h3>
+                    <div class="stat-value" id="lastBuildStatus">-</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Bundle Size Trends</h2>
+                <canvas id="trendsChart"></canvas>
+            </div>
+            
+            <div class="builds-list">
+                <h2>Recent Builds</h2>
+                <div id="buildsList" class="builds-content">
+                    Loading builds...
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="dashboard.js"></script>
+</body>
+</html>
