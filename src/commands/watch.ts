@@ -34,7 +34,7 @@ export async function watchCommand(options: WatchOptions = {}): Promise<void> {
 
     let isAnalyzing = false;
     let lastAnalysisTime = 0;
-    const threshold = options.threshold || 5; // Size change threshold in KB
+    // Size change threshold in KB (currently not used in comparison logic)
     const interval = options.interval || 1000; // Debounce interval in ms
 
     // Store baseline
