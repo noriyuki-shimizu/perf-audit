@@ -1,12 +1,33 @@
 {
   "name": "perf-audit-cli",
-  "version": "1.0.0",
+  "author": "Noriyuki Shimizu",
+  "version": "0.0.1",
   "description": "CLI tool for continuous performance monitoring and analysis",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "perf-audit": "./dist/bin/cli.js"
+    "perf-audit": "dist/bin/cli.js"
   },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noriyuki-shimizu/perf-audit.git"
+  },
+  "homepage": "https://github.com/noriyuki-shimizu/perf-audit/blob/main/README.md",
+  "bugs": {
+    "url": "https://github.com/noriyuki-shimizu/perf-audit/issues"
+  },
+  "keywords": [
+    "performance",
+    "audit",
+    "cli",
+    "bundle",
+    "analysis",
+    "lighthouse"
+  ],
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -18,16 +39,6 @@
     "format": "dprint fmt",
     "format:check": "dprint check"
   },
-  "keywords": [
-    "performance",
-    "audit",
-    "cli",
-    "bundle",
-    "analysis",
-    "lighthouse"
-  ],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
     "@types/chokidar": "^1.7.5",
