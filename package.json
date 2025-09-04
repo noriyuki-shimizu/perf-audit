@@ -30,7 +30,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc && npm run copy:dashboard",
-    "copy:dashboard": "mkdir -p dist/dashboard/public && cp -r src/dashboard/public dist/dashboard/public",
+    "copy:dashboard": "mkdir -p dist/dashboard/public && cp -r src/dashboard/public/* dist/dashboard/public",
     "dev": "tsc --watch",
     "start": "node dist/bin/cli.js",
     "test": "vitest --coverage",
