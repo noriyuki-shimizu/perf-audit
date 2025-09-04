@@ -8,8 +8,8 @@ class PerformanceDashboard {
 
   async init() {
     this.setupWebSocket();
-    await this.loadInitialData();
     this.setupChart();
+    await this.loadInitialData();
   }
 
   setupWebSocket() {

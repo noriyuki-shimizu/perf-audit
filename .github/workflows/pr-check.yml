@@ -57,9 +57,9 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Run tests
+      - name: Run test
         id: test
-        run: npm test -- --run --reporter=verbose
+        run: npm test -- --run
         continue-on-error: true
 
       - name: Post PR comment with results
@@ -119,8 +119,8 @@ jobs:
               issue_number: context.issue.number
             });
 
-            const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && 
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
               comment.body.includes('PR Check Results')
             );
 
@@ -152,116 +152,3 @@ jobs:
             exit 1
           fi
           echo "✅ All checks passed"
-
-  performance-check:
-    name: Performance Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event.pull_request.draft == false
-
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.19.0'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project
-        run: npm run build
-
-      - name: Analyze bundle size
-        id: bundle-analyze
-        run: |
-          node dist/bin/cli.js analyze --format json > bundle-report.json || true
-          if [ -f bundle-report.json ]; then
-            echo "bundle_size=$(cat bundle-report.json | jq -r '.bundles | map(.size) | add')" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Checkout base branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: base
-
-      - name: Analyze base branch bundle
-        id: base-bundle
-        run: |
-          cd base
-          npm ci
-          npm run build
-          node dist/bin/cli.js analyze --format json > ../base-bundle-report.json || true
-          cd ..
-          if [ -f base-bundle-report.json ]; then
-            echo "base_size=$(cat base-bundle-report.json | jq -r '.bundles | map(.size) | add')" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Post bundle size comparison
-        if: steps.bundle-analyze.outcome == 'success' && steps.base-bundle.outcome == 'success'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prSize = ${{ steps.bundle-analyze.outputs.bundle_size || 0 }};
-            const baseSize = ${{ steps.base-bundle.outputs.base_size || 0 }};
-            const diff = prSize - baseSize;
-            const percentChange = baseSize > 0 ? ((diff / baseSize) * 100).toFixed(2) : 0;
-
-            let emoji = '📦';
-            if (diff > 0) emoji = '📈';
-            else if (diff < 0) emoji = '📉';
-
-            const formatSize = (bytes) => {
-              const kb = bytes / 1024;
-              return kb.toFixed(2) + ' KB';
-            };
-
-            let body = `## ${emoji} Bundle Size Report\n\n`;
-            body += `| Metric | Base | PR | Diff | % |\n`;
-            body += `|--------|------|-----|------|---|\n`;
-            body += `| Total Bundle | ${formatSize(baseSize)} | ${formatSize(prSize)} | ${diff > 0 ? '+' : ''}${formatSize(diff)} | ${diff > 0 ? '+' : ''}${percentChange}% |\n`;
-
-            if (Math.abs(percentChange) > 10) {
-              body += `\n⚠️ **Warning:** Significant bundle size change detected!\n`;
-            }
-
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-
-            const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('Bundle Size Report')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body
-              });
-            }
