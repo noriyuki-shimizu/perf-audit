@@ -73,5 +73,14 @@
   // Terminal settings for this project
   "terminal.integrated.env.osx": {
     "NODE_ENV": "development"
-  }
+  },
+
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "必ず日本語で簡潔に記述してください"
+    },
+    {
+      "text": "コミットメッセージは、最初にConventional Commitsに則って記述してください"
+    }
+  ]
 }
