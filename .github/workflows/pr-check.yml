@@ -57,23 +57,9 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Upload build artifacts
-        if: steps.build.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            dist/
-            perf-audit.config.js
-          retention-days: 1
-
-      - name: Run tests with build artifacts
+      - name: Run test
         id: test
-        if: steps.build.outcome == 'success'
-        run: |
-          # テストがビルド成果物を使用できるように環境を設定
-          echo "Testing with built artifacts in dist/ directory"
-          npm test -- --run --reporter=verbose
+        run: npm test -- --run
         continue-on-error: true
 
       - name: Post PR comment with results
