@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { analyzeCommand } from '../commands/analyze.js';
 import { budgetCommand } from '../commands/budget.js';
 import { cleanCommand } from '../commands/clean.js';
@@ -11,12 +14,44 @@ import { lighthouseCommand } from '../commands/lighthouse.js';
 import { watchCommand } from '../commands/watch.js';
 import { Logger } from '../utils/logger.js';
 
+// Package.json type definition
+interface PackageJson {
+  name: string;
+  version: string;
+  description?: string;
+  author?: string;
+  license?: string;
+  [key: string]: unknown;
+}
+
+// Get package.json version
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = join(__dirname, '../../package.json');
+const packageJson: PackageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const VERSION = packageJson.version;
+
 const program = new Command();
 
 program
   .name('perf-audit')
   .description('CLI tool for continuous performance monitoring and analysis')
-  .version('1.0.0');
+  .version(VERSION, '-v, --version', 'Display version number')
+  .helpOption('-h, --help', 'Display help for command')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ perf-audit init                     Initialize configuration file
+  $ perf-audit analyze                  Analyze bundle size
+  $ perf-audit budget                   Check performance budgets
+  $ perf-audit lighthouse <url>         Run Lighthouse audit
+  $ perf-audit history                  Show performance trends
+  $ perf-audit watch                    Watch for changes
+  $ perf-audit dashboard                Start web dashboard
+  $ perf-audit clean                    Clean old data
+
+For more information, visit: https://github.com/noriyuki-shimizu/perf-audit`,
+  );
 
 // Initialize command
 program
