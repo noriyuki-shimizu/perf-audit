@@ -1,65 +1,7 @@
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
-import { AuditResult, BundleInfo, PerformanceMetrics } from '../types/config.ts';
-
-// Plugin lifecycle hooks
-export type PluginHook =
-  | 'beforeAnalysis'
-  | 'afterAnalysis'
-  | 'beforeBundleAnalysis'
-  | 'afterBundleAnalysis'
-  | 'beforeLighthouse'
-  | 'afterLighthouse'
-  | 'beforeReport'
-  | 'afterReport'
-  | 'onError'
-  | 'onNotification';
-
-// Plugin context passed to each hook
-export interface PluginContext {
-  config: any;
-  logger: {
-    info: (message: string) => void;
-    warn: (message: string) => void;
-    error: (message: string) => void;
-  };
-  emit: (event: string, ...args: any[]) => void;
-  store: Map<string, any>; // Plugin-specific data store
-}
-
-// Data passed to different hooks
-export interface HookData {
-  beforeAnalysis?: { config: any; };
-  afterAnalysis?: { result: AuditResult; };
-  beforeBundleAnalysis?: { outputPath: string; };
-  afterBundleAnalysis?: { bundles: BundleInfo[]; };
-  beforeLighthouse?: { url: string; options: any; };
-  afterLighthouse?: { metrics: PerformanceMetrics; };
-  beforeReport?: { result: AuditResult; format: string; };
-  afterReport?: { result: AuditResult; outputPath: string; };
-  onError?: { error: Error; context: string; };
-  onNotification?: { type: string; data: any; };
-}
-
-// Plugin interface
-export interface Plugin {
-  name: string;
-  version?: string;
-  description?: string;
-  hooks: {
-    [K in PluginHook]?: (context: PluginContext, data: HookData[K]) => Promise<void> | void;
-  };
-  install?: (context: PluginContext) => Promise<void> | void;
-  uninstall?: (context: PluginContext) => Promise<void> | void;
-}
-
-// Plugin configuration
-export interface PluginConfig {
-  name: string;
-  enabled: boolean;
-  options?: Record<string, any>;
-}
+import type { HookData, Plugin, PluginConfig, PluginContext, PluginHook } from '../types/plugin.ts';
 
 export class PluginManager extends EventEmitter {
   private plugins: Map<string, Plugin> = new Map();

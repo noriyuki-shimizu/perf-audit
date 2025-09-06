@@ -33,7 +33,7 @@ describe('Dashboard API', () => {
         const limit = parseInt(req.query.limit as string) || 50;
         const builds = mockDb.getRecentBuilds(limit);
         res.json(builds);
-      } catch (error) {
+      } catch {
         res.status(500).json({ error: 'Failed to fetch builds' });
       }
     });
@@ -45,7 +45,7 @@ describe('Dashboard API', () => {
           return res.status(404).json({ error: 'Build not found' });
         }
         res.json(build);
-      } catch (error) {
+      } catch {
         res.status(500).json({ error: 'Failed to fetch build' });
       }
     });
@@ -55,7 +55,7 @@ describe('Dashboard API', () => {
         const days = parseInt(req.query.days as string) || 30;
         const trends = mockDb.getTrendData(days);
         res.json(trends);
-      } catch (error) {
+      } catch {
         res.status(500).json({ error: 'Failed to fetch trends' });
       }
     });
@@ -67,7 +67,7 @@ describe('Dashboard API', () => {
           parseInt(req.params.id2),
         );
         res.json(comparison);
-      } catch (error) {
+      } catch {
         res.status(500).json({ error: 'Failed to compare builds' });
       }
     });
@@ -105,7 +105,7 @@ describe('Dashboard API', () => {
           trendsCount: builds.length,
           formattedAverageSize: `${Math.round(averageSize / 1024)} KB`,
         });
-      } catch (error) {
+      } catch {
         res.status(500).json({ error: 'Failed to fetch stats' });
       }
     });

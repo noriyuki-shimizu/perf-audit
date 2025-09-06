@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Plugin } from '../core/plugin-system.ts';
+import type { Plugin } from '../types/plugin.ts';
 import { formatSize } from '../utils/size.ts';
 
 // Performance tracking plugin that monitors trends over time

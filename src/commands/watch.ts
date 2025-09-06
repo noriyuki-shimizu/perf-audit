@@ -4,18 +4,12 @@ import path from 'path';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import { NotificationService } from '../core/notification-service.ts';
-import { AuditResult } from '../types/config.ts';
+import type { WatchOptions } from '../types/commands.ts';
+import type { AuditResult } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
 import { formatSize } from '../utils/size.ts';
-
-interface WatchOptions {
-  interval?: number;
-  threshold?: number;
-  notify?: boolean;
-  silent?: boolean;
-}
 
 export async function watchCommand(options: WatchOptions = {}): Promise<void> {
   Logger.section('Starting watch mode...');

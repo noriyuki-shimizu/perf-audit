@@ -3,18 +3,13 @@ import path from 'path';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import { PluginManager } from '../core/plugin-system.ts';
-import { AuditResult } from '../types/config.ts';
+import type { AnalyzeOptions } from '../types/commands.ts';
+import type { AuditResult } from '../types/config.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
-
-interface AnalyzeOptions {
-  format: 'json' | 'html' | 'console';
-  compare?: string;
-  details?: boolean;
-}
 
 export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
   const spinner = ora('Loading configuration...').start();

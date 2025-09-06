@@ -78,19 +78,13 @@ export interface NotificationConfig {
   };
 }
 
-export interface PluginConfig {
-  name: string;
-  enabled: boolean;
-  options?: Record<string, any>;
-}
-
 export interface PerfAuditConfig {
   project: ProjectConfig;
   budgets: BudgetConfig;
   analysis: AnalysisConfig;
   reports: ReportConfig;
   notifications?: NotificationConfig;
-  plugins?: PluginConfig[];
+  plugins?: import('./plugin.ts').PluginConfig[];
 }
 
 export interface BundleInfo {

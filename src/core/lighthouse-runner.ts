@@ -1,35 +1,7 @@
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
-import { PerformanceMetrics } from '../types/config.ts';
-
-export interface LighthouseOptions {
-  url: string;
-  device: 'mobile' | 'desktop';
-  throttling: boolean;
-  outputFormat?: 'json' | 'html' | 'csv';
-}
-
-export interface LighthouseConfig {
-  extends: 'lighthouse:default';
-  settings: {
-    onlyCategories?: string[];
-    skipAudits?: string[];
-    throttlingMethod?: 'devtools' | 'provided' | 'simulate';
-    throttling?: {
-      rttMs: number;
-      throughputKbps: number;
-      cpuSlowdownMultiplier: number;
-    };
-    formFactor?: 'mobile' | 'desktop';
-    screenEmulation?: {
-      mobile: boolean;
-      width: number;
-      height: number;
-      deviceScaleFactor: number;
-      disabled: boolean;
-    };
-  };
-}
+import type { PerformanceMetrics } from '../types/config.ts';
+import type { LighthouseConfig, LighthouseOptions } from '../types/lighthouse.ts';
 
 export class LighthouseRunner {
   private static getDesktopConfig(): LighthouseConfig {

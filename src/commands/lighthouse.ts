@@ -2,19 +2,14 @@ import ora from 'ora';
 import path from 'path';
 import { PerformanceDatabase } from '../core/database.ts';
 import { LighthouseRunner } from '../core/lighthouse-runner.ts';
-import { AuditResult } from '../types/config.ts';
+import type { CommandLighthouseOptions } from '../types/commands.ts';
+import type { AuditResult } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
 
-interface LighthouseOptions {
-  device: 'mobile' | 'desktop';
-  throttling: boolean;
-  format: 'json' | 'console';
-}
-
-export async function lighthouseCommand(url: string, options: LighthouseOptions): Promise<void> {
+export async function lighthouseCommand(url: string, options: CommandLighthouseOptions): Promise<void> {
   const spinner = ora('Loading configuration...').start();
 
   // Validate URL
