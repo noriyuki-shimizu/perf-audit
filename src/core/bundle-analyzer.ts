@@ -1,14 +1,9 @@
 import fs from 'fs';
 import { gzipSize } from 'gzip-size';
 import path from 'path';
-import { BundleInfo } from '../types/config.ts';
+import type { AnalyzeOptions } from '../types/bundle-analyzer.ts';
+import type { BundleInfo } from '../types/config.ts';
 import { getStatus, parseSize } from '../utils/size.ts';
-
-export interface AnalyzeOptions {
-  outputPath: string;
-  gzip: boolean;
-  ignorePaths: string[];
-}
 
 export class BundleAnalyzer {
   private options: AnalyzeOptions;

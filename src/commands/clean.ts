@@ -2,14 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
 import { PerformanceDatabase } from '../core/database.ts';
+import type { CleanOptions } from '../types/commands.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
-
-export interface CleanOptions {
-  force?: boolean;
-  days?: number;
-  all?: boolean;
-}
 
 export async function cleanCommand(options: CleanOptions): Promise<void> {
   Logger.section('Cleaning performance data...');

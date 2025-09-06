@@ -1,4 +1,4 @@
-import { Plugin } from '../core/plugin-system.ts';
+import type { Plugin } from '../types/plugin.ts';
 import { formatSize } from '../utils/size.ts';
 
 // Bundle analyzer plugin that provides detailed bundle insights

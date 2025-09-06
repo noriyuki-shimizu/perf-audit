@@ -1,12 +1,8 @@
-import { PerformanceDatabase, TrendData } from '../core/database.ts';
+import { PerformanceDatabase } from '../core/database.ts';
+import type { HistoryOptions } from '../types/commands.ts';
+import type { TrendData } from '../types/database.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
-
-interface HistoryOptions {
-  days: number;
-  metric?: string;
-  format: 'console' | 'json';
-}
 
 export function historyCommand(options: HistoryOptions): void {
   const db = new PerformanceDatabase();

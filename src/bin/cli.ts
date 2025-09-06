@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { analyzeCommand } from '../commands/analyze.ts';
 import { budgetCommand } from '../commands/budget.ts';
 import { cleanCommand } from '../commands/clean.ts';
@@ -13,29 +10,15 @@ import { initCommand } from '../commands/init.ts';
 import { lighthouseCommand } from '../commands/lighthouse.ts';
 import { watchCommand } from '../commands/watch.ts';
 import { Logger } from '../utils/logger.ts';
+import { getPackageJson } from '../utils/package.ts';
 
-// Package.json type definition
-interface PackageJson {
-  name: string;
-  version: string;
-  description?: string;
-  author?: string;
-  license?: string;
-  [key: string]: unknown;
-}
-
-// Get package.json version
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJsonPath = join(__dirname, '../../package.json');
-const packageJson: PackageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-const VERSION = packageJson.version;
-
+/** Command line interface for perf-audit */
 const program = new Command();
 
 program
   .name('perf-audit')
   .description('CLI tool for continuous performance monitoring and analysis')
-  .version(VERSION, '-v, --version', 'Display version number')
+  .version(getPackageJson(import.meta.url).version, '-v, --version', 'Display version number')
   .helpOption('-h, --help', 'Display help for command')
   .addHelpText(
     'after',

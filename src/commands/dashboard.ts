@@ -5,18 +5,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
 import { PerformanceDatabase } from '../core/database.ts';
+import type { DashboardOptions } from '../types/commands.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-interface DashboardOptions {
-  port: number;
-  host: string;
-  open?: boolean;
-}
 
 export async function dashboardCommand(options: DashboardOptions): Promise<void> {
   Logger.section('Starting Performance Dashboard...');

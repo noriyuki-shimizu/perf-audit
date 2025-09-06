@@ -1,41 +1,5 @@
-import { AuditResult } from '../types/config.ts';
+import type { NotificationConfig, PerformanceAlert } from '../types/notification.ts';
 import { formatSize } from '../utils/size.ts';
-
-export interface PerformanceAlert {
-  type: 'regression' | 'improvement' | 'budget_exceeded';
-  changes?: Array<{
-    name: string;
-    delta: number;
-    percentage: number;
-    isRegression: boolean;
-  }>;
-  result: AuditResult;
-  message?: string;
-}
-
-export interface NotificationConfig {
-  slack?: {
-    webhook?: string;
-    channel?: string;
-    username?: string;
-  };
-  discord?: {
-    webhook?: string;
-  };
-  email?: {
-    smtp: {
-      host: string;
-      port: number;
-      secure: boolean;
-      auth: {
-        user: string;
-        pass: string;
-      };
-    };
-    from: string;
-    to: string[];
-  };
-}
 
 export class NotificationService {
   private config: NotificationConfig;
