@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { generateConfigFile } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
+import { generateConfigFile } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
 
 export async function initCommand(): Promise<void> {
   Logger.section('Initializing Performance Audit CLI...');

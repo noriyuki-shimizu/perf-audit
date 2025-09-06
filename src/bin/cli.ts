@@ -4,15 +4,15 @@ import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { analyzeCommand } from '../commands/analyze.js';
-import { budgetCommand } from '../commands/budget.js';
-import { cleanCommand } from '../commands/clean.js';
-import { dashboardCommand } from '../commands/dashboard.js';
-import { historyCommand } from '../commands/history.js';
-import { initCommand } from '../commands/init.js';
-import { lighthouseCommand } from '../commands/lighthouse.js';
-import { watchCommand } from '../commands/watch.js';
-import { Logger } from '../utils/logger.js';
+import { analyzeCommand } from '../commands/analyze.ts';
+import { budgetCommand } from '../commands/budget.ts';
+import { cleanCommand } from '../commands/clean.ts';
+import { dashboardCommand } from '../commands/dashboard.ts';
+import { historyCommand } from '../commands/history.ts';
+import { initCommand } from '../commands/init.ts';
+import { lighthouseCommand } from '../commands/lighthouse.ts';
+import { watchCommand } from '../commands/watch.ts';
+import { Logger } from '../utils/logger.ts';
 
 // Package.json type definition
 interface PackageJson {

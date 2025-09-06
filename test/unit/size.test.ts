@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatSize } from '../../src/utils/size.js';
+import { formatSize } from '../../src/utils/size.ts';
 
 describe('Size Utils', () => {
   describe('formatSize', () => {

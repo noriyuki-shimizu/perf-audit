@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { initCommand } from '../../src/commands/init.js';
+import { initCommand } from '../../src/commands/init.ts';
 
 describe('Commands Unit Tests', () => {
   let tempDir: string;

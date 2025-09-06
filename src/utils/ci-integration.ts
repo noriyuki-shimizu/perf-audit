@@ -1,6 +1,6 @@
-import { PerformanceDatabase } from '../core/database.js';
-import { AuditResult } from '../types/config.js';
-import { formatSize } from './size.js';
+import { PerformanceDatabase } from '../core/database.ts';
+import { AuditResult } from '../types/config.ts';
+import { formatSize } from './size.ts';
 
 export interface CIContext {
   isCI: boolean;

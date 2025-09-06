@@ -1,8 +1,8 @@
 import fs from 'fs';
 import { gzipSize } from 'gzip-size';
 import path from 'path';
-import { BundleInfo } from '../types/config.js';
-import { getStatus, parseSize } from '../utils/size.js';
+import { BundleInfo } from '../types/config.ts';
+import { getStatus, parseSize } from '../utils/size.ts';
 
 export interface AnalyzeOptions {
   outputPath: string;

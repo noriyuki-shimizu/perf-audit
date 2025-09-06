@@ -1,6 +1,6 @@
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
-import { PerformanceMetrics } from '../types/config.js';
+import { PerformanceMetrics } from '../types/config.ts';
 
 export interface LighthouseOptions {
   url: string;

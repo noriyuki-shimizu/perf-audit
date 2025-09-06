@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BundleAnalyzer } from '../../src/core/bundle-analyzer.js';
-import type { BundleInfo } from '../../src/types/config.js';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { BundleAnalyzer } from '../../src/core/bundle-analyzer.ts';
+import type { BundleInfo } from '../../src/types/config.ts';
 
 describe('BundleAnalyzer', () => {
   let tempDir: string;

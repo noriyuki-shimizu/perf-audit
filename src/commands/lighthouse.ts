@@ -1,12 +1,12 @@
 import ora from 'ora';
 import path from 'path';
-import { PerformanceDatabase } from '../core/database.js';
-import { LighthouseRunner } from '../core/lighthouse-runner.js';
-import { AuditResult } from '../types/config.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
-import { ReportGenerator } from '../utils/report-generator.js';
-import { ConsoleReporter } from '../utils/reporter.js';
+import { PerformanceDatabase } from '../core/database.ts';
+import { LighthouseRunner } from '../core/lighthouse-runner.ts';
+import { AuditResult } from '../types/config.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
+import { ReportGenerator } from '../utils/report-generator.ts';
+import { ConsoleReporter } from '../utils/reporter.ts';
 
 interface LighthouseOptions {
   device: 'mobile' | 'desktop';

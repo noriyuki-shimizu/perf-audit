@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PerformanceDatabase } from '../../src/core/database.js';
+import { PerformanceDatabase } from '../../src/core/database.ts';
 
 // Mock the dashboard command function
 vi.mock('../../src/core/database.js');

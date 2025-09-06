@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { PerformanceDatabase } from '../core/database.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
+import { PerformanceDatabase } from '../core/database.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
 
 export interface CleanOptions {
   force?: boolean;
