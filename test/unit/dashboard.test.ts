@@ -1,12 +1,10 @@
 import express from 'express';
 import fs from 'fs';
-import path from 'path';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PerformanceDatabase } from '../../src/core/database.ts';
 
 // Mock the dashboard command function
-vi.mock('../../src/core/database.js');
+vi.mock('../../src/core/database.ts');
 
 describe('Dashboard API', () => {
   let app: express.Application;
