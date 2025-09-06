@@ -1,14 +1,14 @@
 import chokidar from 'chokidar';
 import ora from 'ora';
 import path from 'path';
-import { BundleAnalyzer } from '../core/bundle-analyzer.js';
-import { PerformanceDatabase } from '../core/database.js';
-import { NotificationService } from '../core/notification-service.js';
-import { AuditResult } from '../types/config.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
-import { ConsoleReporter } from '../utils/reporter.js';
-import { formatSize } from '../utils/size.js';
+import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
+import { PerformanceDatabase } from '../core/database.ts';
+import { NotificationService } from '../core/notification-service.ts';
+import { AuditResult } from '../types/config.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
+import { ConsoleReporter } from '../utils/reporter.ts';
+import { formatSize } from '../utils/size.ts';
 
 interface WatchOptions {
   interval?: number;

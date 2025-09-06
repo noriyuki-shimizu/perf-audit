@@ -1,6 +1,6 @@
-import { PerformanceDatabase, TrendData } from '../core/database.js';
-import { Logger } from '../utils/logger.js';
-import { formatSize } from '../utils/size.js';
+import { PerformanceDatabase, TrendData } from '../core/database.ts';
+import { Logger } from '../utils/logger.ts';
+import { formatSize } from '../utils/size.ts';
 
 interface HistoryOptions {
   days: number;

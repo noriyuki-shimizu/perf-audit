@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { PerfAuditConfig } from '../types/config.js';
-import { Logger } from './logger.js';
+import { PerfAuditConfig } from '../types/config.ts';
+import { Logger } from './logger.ts';
 
 const DEFAULT_CONFIG: PerfAuditConfig = {
   project: {

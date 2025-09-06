@@ -1,5 +1,5 @@
-import { AuditResult } from '../types/config.js';
-import { formatSize } from '../utils/size.js';
+import { AuditResult } from '../types/config.ts';
+import { formatSize } from '../utils/size.ts';
 
 export interface PerformanceAlert {
   type: 'regression' | 'improvement' | 'budget_exceeded';

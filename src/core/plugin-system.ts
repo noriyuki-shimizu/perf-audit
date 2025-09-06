@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
-import { AuditResult, BundleInfo, PerformanceMetrics } from '../types/config.js';
+import { AuditResult, BundleInfo, PerformanceMetrics } from '../types/config.ts';
 
 // Plugin lifecycle hooks
 export type PluginHook =

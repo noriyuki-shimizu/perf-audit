@@ -1,5 +1,5 @@
-import { Plugin } from '../core/plugin-system.js';
-import { formatSize } from '../utils/size.js';
+import { Plugin } from '../core/plugin-system.ts';
+import { formatSize } from '../utils/size.ts';
 
 // CI-specific reporting plugin
 export const ciReporterPlugin: Plugin = {

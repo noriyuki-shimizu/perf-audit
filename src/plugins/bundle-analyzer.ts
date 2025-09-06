@@ -1,5 +1,5 @@
-import { Plugin } from '../core/plugin-system.js';
-import { formatSize } from '../utils/size.js';
+import { Plugin } from '../core/plugin-system.ts';
+import { formatSize } from '../utils/size.ts';
 
 // Bundle analyzer plugin that provides detailed bundle insights
 export const bundleAnalyzerPlugin: Plugin = {

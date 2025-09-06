@@ -4,10 +4,10 @@ import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
-import { PerformanceDatabase } from '../core/database.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
-import { formatSize } from '../utils/size.js';
+import { PerformanceDatabase } from '../core/database.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
+import { formatSize } from '../utils/size.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

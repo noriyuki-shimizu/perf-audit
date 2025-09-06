@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PluginManager } from '../../src/core/plugin-system.js';
-import type { Plugin } from '../../src/core/plugin-system.js';
+import { PluginManager } from '../../src/core/plugin-system.ts';
+import type { Plugin } from '../../src/core/plugin-system.ts';
 
 describe('PluginSystem', () => {
   let pluginManager: PluginManager;

@@ -1,10 +1,10 @@
 import ora from 'ora';
-import { BundleAnalyzer } from '../core/bundle-analyzer.js';
-import { AuditResult } from '../types/config.js';
-import { CIIntegration } from '../utils/ci-integration.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
-import { ConsoleReporter } from '../utils/reporter.js';
+import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
+import { AuditResult } from '../types/config.ts';
+import { CIIntegration } from '../utils/ci-integration.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
+import { ConsoleReporter } from '../utils/reporter.ts';
 
 interface BudgetOptions {
   format: 'json' | 'console';
@@ -147,4 +147,4 @@ function getStatus(current: number, warning: number, max: number): 'ok' | 'warni
 }
 
 // Re-export types for use in this module
-type BundleInfo = import('../types/config.js').BundleInfo;
+type BundleInfo = import('../types/config.ts').BundleInfo;

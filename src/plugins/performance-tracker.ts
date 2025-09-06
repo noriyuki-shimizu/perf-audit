@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { Plugin } from '../core/plugin-system.js';
-import { formatSize } from '../utils/size.js';
+import { Plugin } from '../core/plugin-system.ts';
+import { formatSize } from '../utils/size.ts';
 
 // Performance tracking plugin that monitors trends over time
 export const performanceTrackerPlugin: Plugin = {

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PerformanceDatabase } from '../../src/core/database.js';
-import type { BundleInfo, PerformanceMetrics } from '../../src/types/config.js';
+import { PerformanceDatabase } from '../../src/core/database.ts';
+import type { BundleInfo, PerformanceMetrics } from '../../src/types/config.ts';
 
 describe('PerformanceDatabase', () => {
   let tempDir: string;

@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { BundleInfo, PerformanceMetrics } from '../types/config.js';
+import { BundleInfo, PerformanceMetrics } from '../types/config.ts';
 
 export interface BuildRecord {
   id: number;

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { AuditResult } from '../types/config.js';
-import { formatSize } from './size.js';
+import { AuditResult } from '../types/config.ts';
+import { formatSize } from './size.ts';
 
 export class ReportGenerator {
   static generateJsonReport(result: AuditResult, outputPath: string): void {

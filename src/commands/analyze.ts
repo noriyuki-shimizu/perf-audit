@@ -1,14 +1,14 @@
 import ora from 'ora';
 import path from 'path';
-import { BundleAnalyzer } from '../core/bundle-analyzer.js';
-import { PerformanceDatabase } from '../core/database.js';
-import { PluginManager } from '../core/plugin-system.js';
-import { AuditResult } from '../types/config.js';
-import { CIIntegration } from '../utils/ci-integration.js';
-import { loadConfig } from '../utils/config.js';
-import { Logger } from '../utils/logger.js';
-import { ReportGenerator } from '../utils/report-generator.js';
-import { ConsoleReporter } from '../utils/reporter.js';
+import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
+import { PerformanceDatabase } from '../core/database.ts';
+import { PluginManager } from '../core/plugin-system.ts';
+import { AuditResult } from '../types/config.ts';
+import { CIIntegration } from '../utils/ci-integration.ts';
+import { loadConfig } from '../utils/config.ts';
+import { Logger } from '../utils/logger.ts';
+import { ReportGenerator } from '../utils/report-generator.ts';
+import { ConsoleReporter } from '../utils/reporter.ts';
 
 interface AnalyzeOptions {
   format: 'json' | 'html' | 'console';
@@ -172,4 +172,4 @@ function getBudgetStatus(bundles: BundleInfo[]): 'ok' | 'warning' | 'error' {
 }
 
 // Re-export BundleInfo type for use in this module
-type BundleInfo = import('../types/config.js').BundleInfo;
+type BundleInfo = import('../types/config.ts').BundleInfo;
