@@ -37,6 +37,9 @@ export class PerformanceDatabase {
         name TEXT NOT NULL,
         size INTEGER NOT NULL,
         gzip_size INTEGER,
+        delta INTEGER,
+        status TEXT NOT NULL,
+        type TEXT,
         FOREIGN KEY (build_id) REFERENCES builds (id)
       );
 
@@ -79,8 +82,8 @@ export class PerformanceDatabase {
     `);
 
     const insertBundle = this.db.prepare(`
-      INSERT INTO bundles (build_id, name, size, gzip_size)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO bundles (build_id, name, size, gzip_size, delta, status, type)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertMetric = this.db.prepare(`
@@ -105,7 +108,15 @@ export class PerformanceDatabase {
 
       // Save bundles
       for (const bundle of data.bundles) {
-        insertBundle.run(buildId, bundle.name, bundle.size, bundle.gzipSize || null);
+        insertBundle.run(
+          buildId,
+          bundle.name,
+          bundle.size,
+          bundle.gzipSize || null,
+          bundle.delta || null,
+          bundle.status,
+          bundle.type || null,
+        );
       }
 
       // Save metrics
@@ -150,17 +161,20 @@ export class PerformanceDatabase {
       LEFT JOIN metrics m ON b.id = m.build_id
       WHERE b.timestamp > datetime('now', '-${days} days')
       GROUP BY DATE(b.timestamp)
-      ORDER BY date DESC
+      ORDER BY date ASC
     `;
 
     return this.db.prepare(query).all() as TrendData[];
   }
 
-  getRecentBuilds(limit: number = 10): (BuildRecord & { bundles: BundleInfo[]; recommendations: string[]; })[] {
+  getRecentBuilds(
+    limit: number = 10,
+    orderBy: 'ASC' | 'DESC' = 'ASC',
+  ): (BuildRecord & { bundles: BundleInfo[]; recommendations: string[]; })[] {
     const query = `
       SELECT id, timestamp, branch, commit_hash as commitHash, url, device
       FROM builds
-      ORDER BY timestamp DESC
+      ORDER BY timestamp ${orderBy}
       LIMIT ?
     `;
 
@@ -195,7 +209,7 @@ export class PerformanceDatabase {
 
   private getBundlesForBuild(buildId: number): BundleInfo[] {
     const query = `
-      SELECT name, size, gzip_size as gzipSize
+      SELECT name, size, gzip_size as gzipSize, delta, status, type
       FROM bundles
       WHERE build_id = ?
       ORDER BY size DESC

@@ -1,15 +1,6 @@
 import { PerformanceDatabase } from '../core/database.ts';
-import { AuditResult } from '../types/config.ts';
+import { AuditResult, CIContext } from '../types/config.ts';
 import { formatSize } from './size.ts';
-
-export interface CIContext {
-  isCI: boolean;
-  provider: 'github' | 'gitlab' | 'jenkins' | 'unknown';
-  branch?: string;
-  commitHash?: string;
-  pullRequestId?: string;
-  buildNumber?: string;
-}
 
 export class CIIntegration {
   static detectCIEnvironment(): CIContext {

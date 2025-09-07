@@ -15,7 +15,8 @@
     "sourceMap": true,
     "removeComments": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["vitest/globals"]
   },
   "include": [
     "src/**/*"

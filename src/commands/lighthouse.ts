@@ -9,6 +9,11 @@ import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
 
+/**
+ * Run a Lighthouse audit for a specific URL and device
+ * @param url - The URL to audit
+ * @param options - The options for the Lighthouse audit
+ */
 export async function lighthouseCommand(url: string, options: CommandLighthouseOptions): Promise<void> {
   const spinner = ora('Loading configuration...').start();
 
@@ -41,6 +46,7 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
       lighthouse: result,
       recommendations: generatePerformanceRecommendations(result),
       budgetStatus,
+      analysisType: 'client',
     };
 
     // Save to database
@@ -116,6 +122,12 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
   }
 }
 
+/**
+ * Evaluate performance budgets against Lighthouse metrics
+ * @param metrics - Lighthouse metrics
+ * @param budgets - Performance budgets
+ * @returns Status of the budget evaluation
+ */
 function evaluatePerformanceBudgets(
   metrics: any,
   budgets: any,
@@ -170,6 +182,11 @@ function evaluatePerformanceBudgets(
   return 'ok';
 }
 
+/**
+ * Generate performance recommendations based on Lighthouse metrics
+ * @param metrics - Lighthouse metrics
+ * @returns Array of performance improvement recommendations
+ */
 function generatePerformanceRecommendations(metrics: any): string[] {
   const recommendations: string[] = [];
 

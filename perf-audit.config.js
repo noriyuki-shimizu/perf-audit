@@ -1,23 +1,34 @@
 export default {
   // プロジェクト設定
   project: {
-    type: 'webpack', // webpack, vite, rollup, rolldown, esbuild
-    configPath: './webpack.config.js',
-    outputPath: './dist',
+    // クライアントサイドの設定
+    client: {
+      outputPath: './dist',
+    },
+
+    // サーバーサイドの設定（SSR対応）
+    server: {
+      outputPath: './dist',
+    },
   },
 
   // パフォーマンスバジェット
   budgets: {
-    bundles: {
-      main: { max: '150KB', warning: '120KB' },
-      vendor: { max: '100KB', warning: '80KB' },
-      total: { max: '500KB', warning: '400KB' },
+    client: {
+      bundles: {
+        main: { max: '150KB', warning: '120KB' },
+        vendor: { max: '100KB', warning: '80KB' },
+        total: { max: '500KB', warning: '400KB' },
+      },
     },
-    lighthouse: {
-      performance: { min: 90, warning: 95 },
-      accessibility: { min: 95 },
-      seo: { min: 90 },
+    server: {
+      bundles: {
+        main: { max: '200KB', warning: '150KB' },
+        vendor: { max: '150KB', warning: '120KB' },
+        total: { max: '800KB', warning: '600KB' },
+      },
     },
+    // メトリクス設定（クライアントサイドのみ）
     metrics: {
       fcp: { max: 1500, warning: 1000 },
       lcp: { max: 2500, warning: 2000 },
@@ -28,9 +39,9 @@ export default {
 
   // 分析設定
   analysis: {
+    // 解析対象の選択: 'client', 'server', 'both'
+    target: 'server',
     gzip: true,
-    brotli: false,
-    sourceMaps: true,
     ignorePaths: ['**/*.test.js', '**/*.spec.js'],
   },
 
@@ -38,7 +49,6 @@ export default {
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-    retention: 30, // 履歴保持日数
   },
 
   // 通知設定

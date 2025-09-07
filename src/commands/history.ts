@@ -4,6 +4,10 @@ import type { TrendData } from '../types/database.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
 
+/**
+ * Execute performance history command to display historical performance data
+ * @param options - History command options including format and metric filters
+ */
 export function historyCommand(options: HistoryOptions): void {
   const db = new PerformanceDatabase();
 
@@ -66,6 +70,10 @@ export function historyCommand(options: HistoryOptions): void {
   }
 }
 
+/**
+ * Display overview of performance trends including bundle sizes and Core Web Vitals
+ * @param trendData - Array of historical trend data
+ */
 function displayOverview(trendData: TrendData[]): void {
   Logger.section('Bundle Size Trend');
   const recentData = trendData.slice(0, 10);
@@ -89,6 +97,11 @@ function displayOverview(trendData: TrendData[]): void {
   }
 }
 
+/**
+ * Display trend data for a specific performance metric
+ * @param trendData - Array of historical trend data
+ * @param metric - Specific metric to display (size, gzip-size, performance, fcp, lcp, cls, tti)
+ */
 function displaySpecificMetric(trendData: TrendData[], metric: string): void {
   Logger.section(`${metric.toUpperCase()} Trend`);
 
@@ -124,6 +137,11 @@ function displaySpecificMetric(trendData: TrendData[], metric: string): void {
   });
 }
 
+/**
+ * Generate summary statistics from historical trend data
+ * @param trendData - Array of historical trend data
+ * @returns Summary object containing average bundle size, size trend, and average performance score
+ */
 function generateSummary(trendData: TrendData[]): {
   avgBundleSize: number;
   sizeTrend: number;

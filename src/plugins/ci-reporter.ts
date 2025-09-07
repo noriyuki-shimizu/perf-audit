@@ -1,4 +1,4 @@
-import type { Plugin } from '../types/plugin.ts';
+import type { CISummary, Plugin } from '../types/plugin.ts';
 import { formatSize } from '../utils/size.ts';
 
 // CI-specific reporting plugin
@@ -47,23 +47,6 @@ export const ciReporterPlugin: Plugin = {
     },
   },
 };
-
-interface CISummary {
-  status: 'success' | 'warning' | 'error';
-  totalSize: string;
-  totalGzipSize: string;
-  bundleCount: number;
-  violations: Array<{
-    name: string;
-    size: string;
-    status: string;
-  }>;
-  improvements: Array<{
-    name: string;
-    description: string;
-  }>;
-  performanceScore?: number;
-}
 
 function generateCISummary(result: any): CISummary {
   const totalSize = result.bundles.reduce((sum: number, b: any) => sum + b.size, 0);

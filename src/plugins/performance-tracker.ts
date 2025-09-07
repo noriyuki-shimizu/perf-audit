@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { Plugin } from '../types/plugin.ts';
+import type { PerformanceSnapshot, Plugin, TrendAnalysis } from '../types/plugin.ts';
 import { formatSize } from '../utils/size.ts';
 
 // Performance tracking plugin that monitors trends over time
@@ -70,23 +70,6 @@ export const performanceTrackerPlugin: Plugin = {
     },
   },
 };
-
-interface PerformanceSnapshot {
-  timestamp: string;
-  totalSize: number;
-  totalGzipSize: number;
-  bundleCount: number;
-  budgetStatus: string;
-  lighthouse?: any;
-}
-
-interface TrendAnalysis {
-  sizeIncrease: boolean;
-  sizeIncreasePercent: number;
-  bundleCountChange: number;
-  alerts: string[];
-  recommendations: string[];
-}
 
 function loadRecentSnapshots(trackingDir: string, count: number): PerformanceSnapshot[] {
   if (!fs.existsSync(trackingDir)) {

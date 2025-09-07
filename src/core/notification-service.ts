@@ -4,7 +4,7 @@ import { formatSize } from '../utils/size.ts';
 export class NotificationService {
   private config: NotificationConfig;
 
-  constructor(private appConfig: any) {
+  constructor(appConfig: any) {
     this.config = appConfig.notifications || {};
   }
 

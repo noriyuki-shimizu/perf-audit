@@ -13,21 +13,28 @@ export interface MetricBudget {
   warning: number;
 }
 
-export interface ProjectConfig {
-  type: 'webpack' | 'vite' | 'rollup' | 'rolldown' | 'esbuild';
-  configPath: string;
+export interface ClientConfig {
   outputPath: string;
 }
 
-export interface BudgetConfig {
+export interface ServerConfig {
+  outputPath: string;
+}
+
+export interface ProjectConfig {
+  client: ClientConfig;
+  server: ServerConfig;
+}
+
+export interface BundleBudgetConfig {
   bundles: {
     [key: string]: BundleBudget;
   };
-  lighthouse: {
-    performance: LighthouseBudget;
-    accessibility: LighthouseBudget;
-    seo: LighthouseBudget;
-  };
+}
+
+export interface BudgetConfig {
+  client: BundleBudgetConfig;
+  server: BundleBudgetConfig;
   metrics: {
     fcp: MetricBudget;
     lcp: MetricBudget;
@@ -37,16 +44,14 @@ export interface BudgetConfig {
 }
 
 export interface AnalysisConfig {
+  target: 'client' | 'server' | 'both';
   gzip: boolean;
-  brotli: boolean;
-  sourceMaps: boolean;
   ignorePaths: string[];
 }
 
 export interface ReportConfig {
   formats: Array<'console' | 'json' | 'html'>;
   outputDir: string;
-  retention: number;
 }
 
 export interface NotificationConfig {
@@ -93,6 +98,7 @@ export interface BundleInfo {
   gzipSize?: number;
   delta?: number;
   status: 'ok' | 'warning' | 'error';
+  type?: 'client' | 'server';
 }
 
 export interface PerformanceMetrics {
@@ -114,4 +120,14 @@ export interface AuditResult {
   lighthouse?: PerformanceMetrics;
   recommendations: string[];
   budgetStatus: 'ok' | 'warning' | 'error';
+  analysisType: 'client' | 'server' | 'both';
+}
+
+export interface CIContext {
+  isCI: boolean;
+  provider: 'github' | 'gitlab' | 'jenkins' | 'unknown';
+  branch?: string;
+  commitHash?: string;
+  pullRequestId?: string;
+  buildNumber?: string;
 }

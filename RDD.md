@@ -2,7 +2,7 @@
 
 ## プロジェクト概要
 
-フロントエンド開発におけるパフォーマンスを継続的に監視・分析し、パフォーマンス劣化を防ぐためのCLIツール。
+フロントエンド・SSR(Server-Side Rendering)アプリケーションのパフォーマンスを継続的に監視・分析し、パフォーマンス劣化を防ぐためのCLIツール。
 
 ## 目的
 
@@ -42,9 +42,10 @@
 
 #### `perf-audit analyze [options]`
 
-- バンドルサイズ分析
+- バンドルサイズ分析（クライアント・サーバー両対応）
 - チャンク別サイズ表示
 - 前回ビルドとの差分表示
+- SSRアプリケーション対応
 - オプション:
   - `--format <type>`: 出力形式 (json, html, console)
   - `--compare <branch>`: ブランチ比較
@@ -87,30 +88,51 @@
 - リアルタイムサイズ計算
 - 増分表示
 
+#### `perf-audit dashboard`
+
+- Webダッシュボード起動
+- クライアント・サーバー別のトータルバンドルサイズを可視化
+- analyzeを実行した日付ごとで線グラフを表示
+- クライアント・サーバーで別々で線グラフを表示
+- 日付で絞り込みができるフィルター機能を搭載
+- 履歴データのトレンド表示
+- インタラクティブなグラフとチャート
+
 ### 2. 設定ファイル仕様
 
 ```javascript
 // perf-audit.config.js
-module.exports = {
+export default {
   // プロジェクト設定
   project: {
-    type: 'webpack', // webpack, vite, rollup, rolldown, esbuild
-    configPath: './webpack.config.js',
-    outputPath: './dist',
+    // クライアントサイドの設定
+    client: {
+      outputPath: './dist',
+    },
+    // サーバーサイドの設定（SSR対応）
+    server: {
+      outputPath: './dist/server',
+    },
   },
-
   // パフォーマンスバジェット
   budgets: {
-    bundles: {
-      main: { max: '150KB', warning: '120KB' },
-      vendor: { max: '100KB', warning: '80KB' },
-      total: { max: '500KB', warning: '400KB' },
+    // クライアントサイドバジェット
+    client: {
+      bundles: {
+        main: { max: '150KB', warning: '120KB' },
+        vendor: { max: '100KB', warning: '80KB' },
+        total: { max: '500KB', warning: '400KB' },
+      },
     },
-    lighthouse: {
-      performance: { min: 90, warning: 95 },
-      accessibility: { min: 95 },
-      seo: { min: 90 },
+    // サーバーサイドバジェット
+    server: {
+      bundles: {
+        main: { max: '200KB', warning: '150KB' },
+        vendor: { max: '150KB', warning: '120KB' },
+        total: { max: '800KB', warning: '600KB' },
+      },
     },
+    // メトリクス設定（クライアントサイドのみ）
     metrics: {
       fcp: { max: 1500, warning: 1000 },
       lcp: { max: 2500, warning: 2000 },
@@ -118,22 +140,18 @@ module.exports = {
       tti: { max: 3500, warning: 3000 },
     },
   },
-
   // 分析設定
   analysis: {
+    // 解析対象の選択: 'client', 'server', 'both'
+    target: 'both',
     gzip: true,
-    brotli: false,
-    sourceMaps: true,
     ignorePaths: ['**/*.test.js', '**/*.spec.js'],
   },
-
   // レポート設定
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-    retention: 30, // 履歴保持日数
   },
-
   // 通知設定
   notifications: {
     slack: {
@@ -147,17 +165,27 @@ module.exports = {
 
 ### 3. 出力仕様
 
-#### コンソール出力例
+#### コンソール出力例（SSR対応）
 
 ```
 🎯 Performance Audit Report
 ═══════════════════════════════════════════
 
-📦 Bundle Analysis
+📦🖥️ Client & Server Analysis
+
+📦 Client Bundles:
 ├─ main.js:      125.3KB (gzip: 42.1KB) ⚠️ +5.2KB
 ├─ vendor.js:    89.2KB  (gzip: 28.3KB) ✅
 ├─ styles.css:   15.6KB  (gzip: 4.2KB)  ✅
-└─ Total:        230.1KB (gzip: 74.6KB)
+└─ Client Total: 230.1KB (gzip: 74.6KB)
+
+🖥️ Server Bundles:
+├─ server.js:    180.4KB (gzip: 58.2KB) ✅ -2.1KB
+├─ vendor.js:    145.6KB (gzip: 42.8KB) ✅
+└─ Server Total: 326.0KB (gzip: 101.0KB)
+
+📊 Overall Total:
+└─ Combined Total: 556.1KB (gzip: 175.6KB)
 
 📊 Performance Metrics (Mobile)
 ├─ Performance Score: 92/100 ✅
@@ -167,28 +195,42 @@ module.exports = {
 └─ TTI: 3.2s ✅
 
 💡 Recommendations:
-- Consider lazy loading for dashboard route (+15KB)
+- [Client] Consider code splitting for large bundles: main.js
+- [Server] Review server dependencies for optimization
 - Optimize images in /assets/hero/ (potential -50KB)
-- Remove unused CSS classes (potential -3KB)
 
 📈 Trend (last 7 days):
-Bundle size: ↑ 8.2%
+Client bundle size: ↑ 5.2%
+Server bundle size: ↓ 1.1%
 Performance: ↓ 2 points
+
+✅ All checks passed! (2024-01-15 19:30:00)
 ```
 
-#### JSON出力構造
+#### JSON出力構造（SSR対応）
 
 ```json
 {
   "timestamp": "2024-01-15T10:30:00Z",
-  "bundles": {
-    "main": {
+  "analysisType": "both",
+  "bundles": [
+    {
+      "name": "main.js",
+      "type": "client",
       "size": 125300,
       "gzipSize": 42100,
       "delta": 5200,
       "status": "warning"
+    },
+    {
+      "name": "server.js",
+      "type": "server",
+      "size": 180400,
+      "gzipSize": 58200,
+      "delta": -2100,
+      "status": "ok"
     }
-  },
+  ],
   "lighthouse": {
     "performance": 92,
     "metrics": {
@@ -198,7 +240,10 @@ Performance: ↓ 2 points
       "tti": 3200
     }
   },
-  "recommendations": [],
+  "recommendations": [
+    "[Client] Consider code splitting for large bundles: main.js",
+    "[Server] Review server dependencies for optimization"
+  ],
   "budgetStatus": "warning"
 }
 ```

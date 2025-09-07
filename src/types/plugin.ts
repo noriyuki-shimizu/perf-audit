@@ -67,3 +67,47 @@ export interface PluginConfig {
   enabled: boolean;
   options?: Record<string, any>;
 }
+
+/**
+ * Performance tracking related types
+ */
+export interface PerformanceSnapshot {
+  timestamp: string;
+  totalSize: number;
+  totalGzipSize: number;
+  bundleCount: number;
+  budgetStatus: string;
+  lighthouse?: any;
+}
+
+export interface TrendAnalysis {
+  sizeIncrease: boolean;
+  sizeIncreasePercent: number;
+  bundleCountChange: number;
+  alerts: string[];
+  recommendations: string[];
+}
+
+/**
+ * CI Reporter types
+ */
+export interface CISummary {
+  status: 'success' | 'warning' | 'error';
+  totalSize: string;
+  totalGzipSize: string;
+  bundleCount: number;
+  violations: Array<{
+    name: string;
+    size: string;
+    status: string;
+    budget?: string;
+    difference?: string;
+  }>;
+  improvements: Array<{
+    name: string;
+    description: string;
+  }>;
+  performanceScore?: number;
+  url?: string;
+  details?: string;
+}

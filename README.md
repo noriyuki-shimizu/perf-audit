@@ -1,16 +1,17 @@
 # Performance Audit CLI Tool
 
-フロントエンド開発におけるパフォーマンスを継続的に監視・分析し、パフォーマンス劣化を防ぐためのCLIツール。
+フロントエンド・SSR(Server-Side Rendering)アプリケーションのパフォーマンスを継続的に監視・分析し、パフォーマンス劣化を防ぐためのCLIツール。
 
 ## 特徴
 
-- ✅ バンドルサイズの自動監視
-- ✅ パフォーマンスバジェットチェック
+- ✅ クライアント・サーバーサイドバンドルの自動監視（SSR対応）
+- ✅ 個別・統合パフォーマンスバジェットチェック
 - ✅ Lighthouse統合によるWebパフォーマンス測定
 - ✅ SQLiteベースの履歴管理とトレンド分析
 - ✅ JSON/HTML形式の詳細レポート生成
 - ✅ CI/CD統合（GitHub Actions、GitLab CI対応）
 - ✅ Webpack, Vite, Rollup等の主要バンドラー対応
+- ✅ Webダッシュボードによるビジュアライゼーション
 
 ## インストール
 
@@ -28,7 +29,7 @@ perf-audit init
 
 設定ファイル `perf-audit.config.js` が作成され、プロジェクトに合わせてカスタマイズできます。
 
-### 2. バンドル分析
+### 2. バンドル分析（SSR対応）
 
 ```bash
 perf-audit analyze [オプション]
@@ -39,6 +40,40 @@ perf-audit analyze [オプション]
 - `--format <type>`: 出力形式 (json, html, console) [デフォルト: console]
 - `--compare <branch>`: 指定したブランチと比較
 - `--details`: 詳細分析を表示
+
+設定ファイルの `analysis.target` で解析対象を制御できます：
+
+- `'client'`: クライアントサイドバンドルのみ
+- `'server'`: サーバーサイドバンドルのみ
+- `'both'`: クライアント・サーバー両方（デフォルト）
+
+#### 出力例（SSR対応）
+
+```
+🎯 Performance Audit Report
+═══════════════════════════════════════════
+
+📦🖥️ Client & Server Analysis
+
+📦 Client Bundles:
+├─ main.js:      125.3KB (gzip: 42.1KB) ⚠️ +5.2KB
+├─ vendor.js:    89.2KB  (gzip: 28.3KB) ✅
+└─ Client Total: 214.3KB (gzip: 70.4KB)
+
+🖥️ Server Bundles:
+├─ server.js:    180.4KB (gzip: 58.2KB) ✅ -2.1KB
+├─ vendor.js:    145.6KB (gzip: 42.8KB) ✅
+└─ Server Total: 326.0KB (gzip: 101.0KB)
+
+📊 Overall Total:
+└─ Combined Total: 540.3KB (gzip: 171.4KB)
+
+💡 Recommendations:
+- [Client] Consider code splitting for large bundles: main.js
+- [Server] Review server dependencies for optimization
+
+✅ All checks passed! (2024-01-15 19:30:00)
+```
 
 ### 3. パフォーマンスバジェットチェック
 
@@ -103,7 +138,7 @@ perf-audit watch [オプション]
 
 ファイルの変更を監視し、リアルタイムでパフォーマンス分析を実行します。
 
-### 7. Webダッシュボード
+### 7. Webダッシュボード（SSR対応）
 
 ```bash
 perf-audit dashboard [オプション]
@@ -116,6 +151,14 @@ perf-audit dashboard [オプション]
 - `--open`: ブラウザを自動で開く
 
 パフォーマンスデータを視覚化するWebダッシュボードを起動します。
+
+**主な機能:**
+
+- クライアント・サーバーバンドル別の可視化
+- 個別および統合トレンドグラフ
+- パフォーマンスバジェット状況の表示
+- 履歴データのインタラクティブな分析
+- レスポンシブ対応のダッシュボードUI
 
 ### 8. データクリーンアップ
 
@@ -131,37 +174,75 @@ perf-audit clean [オプション]
 
 パフォーマンスデータとレポートをクリーンアップします。
 
+## SSR（Server-Side Rendering）対応
+
+Performance Audit CLI ToolはSSRアプリケーションにも対応しており、クライアントサイドとサーバーサイドのバンドルを個別に、または統合して解析できます。
+
+### SSRアプリケーションの設定
+
+1. **設定ファイルの準備**: `perf-audit.config.js` でクライアント・サーバーの設定を個別に定義
+2. **解析対象の選択**: `analysis.target` で解析対象を選択（`client`, `server`, `both`）
+3. **バジェット管理**: クライアント・サーバー別に異なるパフォーマンスバジェットを設定
+
+### 使用例
+
+```bash
+# クライアント・サーバー両方を解析
+perf-audit analyze
+
+# クライアントサイドのみ解析
+# config.analysis.target = 'client'
+perf-audit analyze
+
+# サーバーサイドのみ解析
+# config.analysis.target = 'server'
+perf-audit analyze
+```
+
+### ダッシュボードでの可視化
+
+Webダッシュボードでは以下の機能を提供：
+
+- **個別表示**: クライアント・サーバーバンドルを別々に表示
+- **統合表示**: 総合的なパフォーマンス状況を表示
+- **トレンド分析**: 時系列でのバンドルサイズ変化を追跡
+- **バジェット管理**: 個別バジェットの遵守状況を監視
+
 ## 設定
 
 `perf-audit.config.js` でプロジェクトに合わせて設定をカスタマイズできます。
 
-### プロジェクト設定 (`project`)
+#### クライアントサイド設定 (`project.client`)
 
-| 項目         | 型     | デフォルト              | 説明                       | 選択肢                                             |
-| ------------ | ------ | ----------------------- | -------------------------- | -------------------------------------------------- |
-| `type`       | string | `'webpack'`             | バンドラータイプ           | `webpack`, `vite`, `rollup`, `rolldown`, `esbuild` |
-| `configPath` | string | `'./webpack.config.js'` | バンドラー設定ファイルパス | ファイルパス                                       |
-| `outputPath` | string | `'./dist'`              | ビルド出力ディレクトリ     | ディレクトリパス                                   |
+| 項目         | 型     | デフォルト | 説明                         |
+| ------------ | ------ | ---------- | ---------------------------- |
+| `outputPath` | string | `'./dist'` | クライアント出力ディレクトリ |
 
-### パフォーマンスバジェット設定 (`budgets`)
+#### サーバーサイド設定 (`project.server`)
 
-#### バンドルバジェット (`budgets.bundles`)
+| 項目         | 型     | デフォルト        | 説明                     |
+| ------------ | ------ | ----------------- | ------------------------ |
+| `outputPath` | string | `'./dist/server'` | サーバー出力ディレクトリ |
 
-| 項目           | 型     | 説明                         | 例                                   |
-| -------------- | ------ | ---------------------------- | ------------------------------------ |
-| `main`         | object | メインバンドルのサイズ制限   | `{ max: '150KB', warning: '120KB' }` |
-| `vendor`       | object | ベンダーバンドルのサイズ制限 | `{ max: '100KB', warning: '80KB' }`  |
-| `total`        | object | 全バンドルの合計サイズ制限   | `{ max: '500KB', warning: '400KB' }` |
-| `[カスタム名]` | object | 任意のバンドル名のサイズ制限 | `{ max: '50KB', warning: '40KB' }`   |
+### パフォーマンスバジェット設定 (`budgets`) - SSR対応
 
-#### Lighthouseバジェット (`budgets.lighthouse`)
+#### クライアントサイドバジェット (`budgets.client.bundles`)
 
-| 項目                  | 型     | 説明                           | 範囲  |
-| --------------------- | ------ | ------------------------------ | ----- |
-| `performance.min`     | number | パフォーマンススコアの最小値   | 0-100 |
-| `performance.warning` | number | パフォーマンススコアの警告値   | 0-100 |
-| `accessibility.min`   | number | アクセシビリティスコアの最小値 | 0-100 |
-| `seo.min`             | number | SEOスコアの最小値              | 0-100 |
+| 項目           | 型     | 説明                                     | 例                                   |
+| -------------- | ------ | ---------------------------------------- | ------------------------------------ |
+| `main`         | object | クライアントメインバンドルのサイズ制限   | `{ max: '150KB', warning: '120KB' }` |
+| `vendor`       | object | クライアントベンダーバンドルのサイズ制限 | `{ max: '100KB', warning: '80KB' }`  |
+| `total`        | object | クライアント全バンドルの合計サイズ制限   | `{ max: '500KB', warning: '400KB' }` |
+| `[カスタム名]` | object | 任意のバンドル名のサイズ制限             | `{ max: '50KB', warning: '40KB' }`   |
+
+#### サーバーサイドバジェット (`budgets.server.bundles`)
+
+| 項目           | 型     | 説明                                 | 例                                   |
+| -------------- | ------ | ------------------------------------ | ------------------------------------ |
+| `main`         | object | サーバーメインバンドルのサイズ制限   | `{ max: '200KB', warning: '150KB' }` |
+| `vendor`       | object | サーバーベンダーバンドルのサイズ制限 | `{ max: '150KB', warning: '120KB' }` |
+| `total`        | object | サーバー全バンドルの合計サイズ制限   | `{ max: '800KB', warning: '600KB' }` |
+| `[カスタム名]` | object | 任意のバンドル名のサイズ制限         | `{ max: '80KB', warning: '60KB' }`   |
 
 #### Core Web Vitals バジェット (`budgets.metrics`)
 
@@ -176,14 +257,13 @@ perf-audit clean [オプション]
 | `tti.max`     | number | ms   | Time to Interactive の最大値      |
 | `tti.warning` | number | ms   | TTI の警告値                      |
 
-### 分析設定 (`analysis`)
+### 分析設定 (`analysis`) - SSR対応
 
-| 項目          | 型       | デフォルト                         | 説明                             |
-| ------------- | -------- | ---------------------------------- | -------------------------------- |
-| `gzip`        | boolean  | `true`                             | gzip圧縮サイズを計測するか       |
-| `brotli`      | boolean  | `false`                            | brotli圧縮サイズを計測するか     |
-| `sourceMaps`  | boolean  | `true`                             | ソースマップを分析するか         |
-| `ignorePaths` | string[] | `['**/*.test.js', '**/*.spec.js']` | 分析から除外するファイルパターン |
+| 項目          | 型       | デフォルト                         | 説明                                  |
+| ------------- | -------- | ---------------------------------- | ------------------------------------- |
+| `target`      | string   | `'both'`                           | 解析対象 (`client`, `server`, `both`) |
+| `gzip`        | boolean  | `true`                             | gzip圧縮サイズを計測するか            |
+| `ignorePaths` | string[] | `['**/*.test.js', '**/*.spec.js']` | 分析から除外するファイルパターン      |
 
 ### レポート設定 (`reports`)
 
@@ -191,7 +271,6 @@ perf-audit clean [オプション]
 | ----------- | -------- | ----------------------------- | ------------------------ |
 | `formats`   | string[] | `['console', 'json', 'html']` | 利用可能な出力形式       |
 | `outputDir` | string   | `'./performance-reports'`     | レポート出力ディレクトリ |
-| `retention` | number   | `30`                          | 履歴保持日数             |
 
 ### 通知設定 (`notifications`)
 
@@ -203,29 +282,41 @@ perf-audit clean [オプション]
 | `channel`   | string | 通知先チャンネル                       |
 | `threshold` | string | 通知レベル (`error`, `warning`, `all`) |
 
-### 設定例
+### 設定例（SSR対応）
 
 ```javascript
 export default {
   // プロジェクト設定
   project: {
-    type: 'webpack',
-    configPath: './webpack.config.js',
-    outputPath: './dist',
+    // クライアントサイドの設定
+    client: {
+      outputPath: './dist',
+    },
+    // サーバーサイドの設定（SSR対応）
+    server: {
+      outputPath: './dist/server',
+    },
   },
 
   // パフォーマンスバジェット
   budgets: {
-    bundles: {
-      main: { max: '150KB', warning: '120KB' },
-      vendor: { max: '100KB', warning: '80KB' },
-      total: { max: '500KB', warning: '400KB' },
+    // クライアントサイドバジェット
+    client: {
+      bundles: {
+        main: { max: '150KB', warning: '120KB' },
+        vendor: { max: '100KB', warning: '80KB' },
+        total: { max: '500KB', warning: '400KB' },
+      },
     },
-    lighthouse: {
-      performance: { min: 90, warning: 95 },
-      accessibility: { min: 95 },
-      seo: { min: 90 },
+    // サーバーサイドバジェット
+    server: {
+      bundles: {
+        main: { max: '200KB', warning: '150KB' },
+        vendor: { max: '150KB', warning: '120KB' },
+        total: { max: '800KB', warning: '600KB' },
+      },
     },
+    // メトリクス設定（クライアントサイドのみ）
     metrics: {
       fcp: { max: 1500, warning: 1000 },
       lcp: { max: 2500, warning: 2000 },
@@ -236,9 +327,9 @@ export default {
 
   // 分析設定
   analysis: {
+    // 解析対象の選択: 'client', 'server', 'both'
+    target: 'both',
     gzip: true,
-    brotli: false,
-    sourceMaps: true,
     ignorePaths: ['**/*.test.js', '**/*.spec.js'],
   },
 
@@ -246,7 +337,6 @@ export default {
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-    retention: 30,
   },
 
   // 通知設定
