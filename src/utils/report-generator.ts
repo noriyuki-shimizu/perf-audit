@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { AuditResult } from '../types/config.ts';
-import { formatSizeString } from './size.ts';
+import { formatSize } from './size.ts';
 
 export class ReportGenerator {
   static generateJsonReport(result: AuditResult, outputPath: string): void {
@@ -77,8 +77,8 @@ export class ReportGenerator {
             </div>
             <div class="card">
                 <h3>Total Size</h3>
-                <div class="metric">${formatSizeString(totalSize)}</div>
-                <div class="sub-metric">Gzipped: ${formatSizeString(totalGzipSize)}</div>
+                <div class="metric">${formatSize(totalSize)}</div>
+                <div class="sub-metric">Gzipped: ${formatSize(totalGzipSize)}</div>
             </div>
         </div>
 
@@ -99,8 +99,8 @@ export class ReportGenerator {
       result.bundles.map(bundle => `
                             <tr class="${bundle.status}">
                                 <td class="bundle-name">${bundle.name}</td>
-                                <td>${formatSizeString(bundle.size)}</td>
-                                <td>${bundle.gzipSize ? formatSizeString(bundle.gzipSize) : 'N/A'}</td>
+                                <td>${formatSize(bundle.size)}</td>
+                                <td>${bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A'}</td>
                                 <td class="status">${this.getStatusIcon(bundle.status)} ${bundle.status}</td>
                             </tr>
                         `).join('')

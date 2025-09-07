@@ -58,7 +58,7 @@ vi.mock('../../../src/utils/logger.ts', () => ({
 }));
 
 vi.mock('../../../src/utils/size.ts', () => ({
-  formatSizeString: vi.fn((size: number) => `${Math.round(size / 1024)}KB`),
+  formatSize: vi.fn((size: number) => `${Math.round(size / 1024)}KB`),
 }));
 
 describe('historyCommand', () => {

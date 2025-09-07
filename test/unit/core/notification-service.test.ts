@@ -6,7 +6,7 @@ vi.setConfig({ testTimeout: 100 });
 
 // Mock modules
 vi.mock('../../../src/utils/size.ts', () => ({
-  formatSizeString: vi.fn((size: number) => `${Math.round(size / 1024)}KB`),
+  formatSize: vi.fn((size: number) => `${Math.round(size / 1024)}KB`),
 }));
 
 // Mock fetch

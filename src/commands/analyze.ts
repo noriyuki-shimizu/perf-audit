@@ -3,15 +3,15 @@ import path from 'path';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import { PluginManager } from '../core/plugin-system.ts';
-import type { 
-  AnalyzeOptions,
-  AnalysisContext,
-  BundleAnalysisContext,
-  AfterBundleAnalysisContext,
+import type {
   AfterAnalysisContext,
-  BeforeReportContext,
+  AfterBundleAnalysisContext,
   AfterReportContext,
-  ErrorContext
+  AnalysisContext,
+  AnalyzeOptions,
+  BeforeReportContext,
+  BundleAnalysisContext,
+  ErrorContext,
 } from '../types/commands.ts';
 import type { AuditResult, BundleInfo } from '../types/config.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
@@ -36,7 +36,6 @@ const HEAVY_SERVER_BUNDLE_THRESHOLD = 100 * 1024;
 const MIN_SMALL_CHUNKS_FOR_RECOMMENDATION = 3;
 
 /** Plugin manager context for analysis */
-
 
 /**
  * Execute bundle analysis command

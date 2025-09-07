@@ -3,8 +3,8 @@ import {
   calculateDelta,
   formatDelta,
   formatSize,
-  formatSizeString,
   getStatus,
+  normalizeSize,
   parseSize,
 } from '../../../src/utils/size.ts';
 
@@ -38,7 +38,7 @@ describe('parseSize', () => {
   });
 });
 
-describe('formatSize', () => {
+describe('normalizeSize', () => {
   it.each([
     { bytes: 0, expected: 0 },
     { bytes: 100, expected: 100 },
@@ -47,23 +47,23 @@ describe('formatSize', () => {
     { bytes: 1048576, expected: 1.0 }, // 1MB
     { bytes: 1572864, expected: 1.5 }, // 1.5MB
   ])('should format $bytes bytes to $expected', ({ bytes, expected }) => {
-    expect(formatSize(bytes)).toBe(expected);
+    expect(normalizeSize(bytes)).toBe(expected);
   });
 
   it('should handle negative bytes', () => {
-    expect(formatSize(-100)).toBe(0);
+    expect(normalizeSize(-100)).toBe(0);
   });
 
   it('should respect decimals parameter', () => {
-    expect(formatSize(2560, 0)).toBe(3); // 2.5KB rounded to 3
+    expect(normalizeSize(2560, 0)).toBe(3); // 2.5KB rounded to 3
   });
 
   it('should handle negative decimals', () => {
-    expect(formatSize(2560, -1)).toBe(3); // Treated as 0 decimals
+    expect(normalizeSize(2560, -1)).toBe(3); // Treated as 0 decimals
   });
 });
 
-describe('formatSizeString', () => {
+describe('formatSize', () => {
   it.each([
     { bytes: 0, expected: '0B' },
     { bytes: 100, expected: '100B' },
@@ -73,24 +73,24 @@ describe('formatSizeString', () => {
     { bytes: 1572864, expected: '1.5MB' },
     { bytes: 1073741824, expected: '1GB' },
   ])('should format $bytes bytes to "$expected"', ({ bytes, expected }) => {
-    expect(formatSizeString(bytes)).toBe(expected);
+    expect(formatSize(bytes)).toBe(expected);
   });
 
   it('should handle negative bytes', () => {
-    expect(formatSizeString(-100)).toBe('0B');
+    expect(formatSize(-100)).toBe('0B');
   });
 
   it('should respect decimals parameter', () => {
-    expect(formatSizeString(2560, 0)).toBe('3KB');
+    expect(formatSize(2560, 0)).toBe('3KB');
   });
 
   it('should handle negative decimals', () => {
-    expect(formatSizeString(2560, -1)).toBe('3KB');
+    expect(formatSize(2560, -1)).toBe('3KB');
   });
 
   it('should handle large numbers with TB unit', () => {
     const terabyte = 1024 * 1024 * 1024 * 1024;
-    expect(formatSizeString(terabyte)).toBe('1TB');
+    expect(formatSize(terabyte)).toBe('1TB');
   });
 });
 

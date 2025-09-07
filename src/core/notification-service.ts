@@ -1,5 +1,5 @@
 import type { NotificationConfig, PerformanceAlert } from '../types/notification.ts';
-import { formatSizeString } from '../utils/size.ts';
+import { formatSize } from '../utils/size.ts';
 
 export class NotificationService {
   private config: NotificationConfig;
@@ -112,7 +112,7 @@ export class NotificationService {
       text += '*Changes:*\n';
       changes.forEach(change => {
         const emoji = change.isRegression ? ':chart_with_upwards_trend:' : ':chart_with_downwards_trend:';
-        const delta = change.delta > 0 ? `+${formatSizeString(change.delta)}` : formatSizeString(change.delta);
+        const delta = change.delta > 0 ? `+${formatSize(change.delta)}` : formatSize(change.delta);
         const percent = change.percentage > 0
           ? `+${change.percentage.toFixed(1)}%`
           : `${change.percentage.toFixed(1)}%`;
@@ -140,7 +140,7 @@ export class NotificationService {
             },
             {
               title: 'Total Size',
-              value: formatSizeString(result.bundles.reduce((sum, b) => sum + b.size, 0)),
+              value: formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0)),
               short: true,
             },
           ],
@@ -169,7 +169,7 @@ export class NotificationService {
     if (changes && changes.length > 0) {
       const changesText = changes.map(change => {
         const emoji = change.isRegression ? '📈' : '📉';
-        const delta = change.delta > 0 ? `+${formatSizeString(change.delta)}` : formatSizeString(change.delta);
+        const delta = change.delta > 0 ? `+${formatSize(change.delta)}` : formatSize(change.delta);
         const percent = change.percentage > 0
           ? `+${change.percentage.toFixed(1)}%`
           : `${change.percentage.toFixed(1)}%`;
@@ -190,7 +190,7 @@ export class NotificationService {
       },
       {
         name: 'Total Size',
-        value: formatSizeString(result.bundles.reduce((sum, b) => sum + b.size, 0)),
+        value: formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0)),
         inline: true,
       },
       {
@@ -227,7 +227,7 @@ export class NotificationService {
     if (changes && changes.length > 0) {
       content += 'Changes:\n';
       changes.forEach(change => {
-        const delta = change.delta > 0 ? `+${formatSizeString(change.delta)}` : formatSizeString(change.delta);
+        const delta = change.delta > 0 ? `+${formatSize(change.delta)}` : formatSize(change.delta);
         const percent = change.percentage > 0
           ? `+${change.percentage.toFixed(1)}%`
           : `${change.percentage.toFixed(1)}%`;
@@ -237,7 +237,7 @@ export class NotificationService {
     }
 
     content += `Total Bundles: ${result.bundles.length}\n`;
-    content += `Total Size: ${formatSizeString(result.bundles.reduce((sum, b) => sum + b.size, 0))}\n`;
+    content += `Total Size: ${formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0))}\n`;
     content += `Budget Status: ${result.budgetStatus.toUpperCase()}\n`;
     content += `Timestamp: ${new Date(result.timestamp).toLocaleString()}\n`;
 

@@ -1,11 +1,6 @@
 import ora from 'ora';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
-import type { 
-  BudgetOptions,
-  BudgetStatus,
-  BundleType,
-  BudgetJsonOutput
-} from '../types/commands.ts';
+import type { BudgetJsonOutput, BudgetOptions, BudgetStatus, BundleType } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
 import { loadConfig } from '../utils/config.ts';
@@ -27,7 +22,6 @@ const WARNING_EXIT_CODE = 2;
 const ERROR_EXIT_CODE = 1;
 
 /** Budget status type */
-
 
 /**
  * Execute performance budget check command

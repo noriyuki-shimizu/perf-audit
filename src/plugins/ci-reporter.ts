@@ -1,5 +1,5 @@
-import type { Plugin, CISummary } from '../types/plugin.ts';
-import { formatSizeString } from '../utils/size.ts';
+import type { CISummary, Plugin } from '../types/plugin.ts';
+import { formatSize } from '../utils/size.ts';
 
 // CI-specific reporting plugin
 export const ciReporterPlugin: Plugin = {
@@ -48,8 +48,6 @@ export const ciReporterPlugin: Plugin = {
   },
 };
 
-
-
 function generateCISummary(result: any): CISummary {
   const totalSize = result.bundles.reduce((sum: number, b: any) => sum + b.size, 0);
   const totalGzipSize = result.bundles.reduce((sum: number, b: any) => sum + (b.gzipSize || 0), 0);
@@ -58,7 +56,7 @@ function generateCISummary(result: any): CISummary {
     .filter((b: any) => b.status !== 'ok')
     .map((b: any) => ({
       name: b.name,
-      size: formatSizeString(b.size),
+      size: formatSize(b.size),
       status: b.status,
     }));
 
@@ -90,8 +88,8 @@ function generateCISummary(result: any): CISummary {
 
   return {
     status,
-    totalSize: formatSizeString(totalSize),
-    totalGzipSize: formatSizeString(totalGzipSize),
+    totalSize: formatSize(totalSize),
+    totalGzipSize: formatSize(totalGzipSize),
     bundleCount: result.bundles.length,
     violations,
     improvements,

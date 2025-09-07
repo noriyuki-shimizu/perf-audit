@@ -5,24 +5,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
 import { PerformanceDatabase } from '../core/database.ts';
-import type { 
-  DashboardOptions,
-  Build,
-  TrendQuery,
-  TrendData,
-  BundleStats,
-  DashboardStats
-} from '../types/commands.ts';
+import type { Build, BundleStats, DashboardOptions, DashboardStats, TrendData, TrendQuery } from '../types/commands.ts';
 import type { BundleInfo } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
-import { formatSize, formatSizeString } from '../utils/size.ts';
+import { formatSize, normalizeSize } from '../utils/size.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** Build data interface */
-
 
 /**
  * Start the performance dashboard server
@@ -312,16 +304,16 @@ const getDashboardStats = (db: PerformanceDatabase): DashboardStats => {
     averageSize: Math.round(averageSize),
     lastBuildStatus,
     trendsCount: recentBuilds.length,
-    formattedAverageSize: formatSizeString(averageSize),
+    formattedAverageSize: formatSize(averageSize),
     clientStats: {
       ...clientStats,
-      formattedTotalSize: formatSizeString(clientStats.totalSize),
-      formattedAverageSize: formatSizeString(clientStats.averageSize),
+      formattedTotalSize: formatSize(clientStats.totalSize),
+      formattedAverageSize: formatSize(clientStats.averageSize),
     },
     serverStats: {
       ...serverStats,
-      formattedTotalSize: formatSizeString(serverStats.totalSize),
-      formattedAverageSize: formatSizeString(serverStats.averageSize),
+      formattedTotalSize: formatSize(serverStats.totalSize),
+      formattedAverageSize: formatSize(serverStats.averageSize),
     },
   };
 };
@@ -443,7 +435,7 @@ const getClientTotalTrends = (builds: Build[]): TrendData => {
   const data = builds.map(build => {
     const clientBundles = build.bundles.filter(b => b.type === 'client');
     const totalSize = clientBundles.reduce((total, bundle) => total + bundle.size, 0);
-    return formatSize(totalSize);
+    return normalizeSize(totalSize);
   });
 
   return {
@@ -472,7 +464,7 @@ const getServerTotalTrends = (builds: Build[]): TrendData => {
   const data = builds.map(build => {
     const serverBundles = build.bundles.filter(b => b.type === 'server');
     const totalSize = serverBundles.reduce((total, bundle) => total + bundle.size, 0);
-    return formatSize(totalSize);
+    return normalizeSize(totalSize);
   });
 
   return {
@@ -503,13 +495,13 @@ const getTotalBundleTrends = (builds: Build[]): TrendData => {
   const clientData = builds.map(build => {
     const clientBundles = build.bundles.filter(b => b.type === 'client');
     const totalSize = clientBundles.reduce((total, bundle) => total + bundle.size, 0);
-    return formatSize(totalSize);
+    return normalizeSize(totalSize);
   });
 
   const serverData = builds.map(build => {
     const serverBundles = build.bundles.filter(b => b.type === 'server');
     const totalSize = serverBundles.reduce((total, bundle) => total + bundle.size, 0);
-    return formatSize(totalSize);
+    return normalizeSize(totalSize);
   });
 
   return {

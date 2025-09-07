@@ -17,7 +17,7 @@ export function parseSize(sizeString: string): number {
   return Math.round(parseFloat(value) * multiplier);
 }
 
-export function formatSize(bytes: number, decimals: number = 1): number {
+export function normalizeSize(bytes: number, decimals: number = 1): number {
   if (bytes <= 0) return 0;
 
   const k = 1024;
@@ -27,7 +27,7 @@ export function formatSize(bytes: number, decimals: number = 1): number {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
 }
 
-export function formatSizeString(bytes: number, decimals: number = 1): string {
+export function formatSize(bytes: number, decimals: number = 1): string {
   if (bytes <= 0) return '0B';
 
   const k = 1024;
@@ -46,7 +46,7 @@ export function calculateDelta(current: number, previous: number): number {
 export function formatDelta(delta: number): string {
   const sign = delta >= 0 ? '+' : '-';
   const absoluteDelta = Math.abs(delta);
-  return `${sign}${formatSizeString(absoluteDelta)}`;
+  return `${sign}${formatSize(absoluteDelta)}`;
 }
 
 export function getStatus(current: number, warning: number, max: number): 'ok' | 'warning' | 'error' {

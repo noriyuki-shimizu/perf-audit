@@ -2,7 +2,7 @@ import { PerformanceDatabase } from '../core/database.ts';
 import type { HistoryOptions } from '../types/commands.ts';
 import type { TrendData } from '../types/database.ts';
 import { Logger } from '../utils/logger.ts';
-import { formatSizeString } from '../utils/size.ts';
+import { formatSize } from '../utils/size.ts';
 
 /**
  * Execute performance history command to display historical performance data
@@ -56,8 +56,8 @@ export function historyCommand(options: HistoryOptions): void {
     const summary = generateSummary(trendData);
     Logger.section('Summary');
     Logger.info(`Total builds: ${trendData.length}`);
-    Logger.info(`Avg bundle size: ${formatSizeString(summary.avgBundleSize)}`);
-    Logger.info(`Size trend: ${summary.sizeTrend > 0 ? '📈' : '📉'} ${formatSizeString(Math.abs(summary.sizeTrend))}`);
+    Logger.info(`Avg bundle size: ${formatSize(summary.avgBundleSize)}`);
+    Logger.info(`Size trend: ${summary.sizeTrend > 0 ? '📈' : '📉'} ${formatSize(Math.abs(summary.sizeTrend))}`);
 
     if (summary.avgPerformanceScore > 0) {
       Logger.info(`Avg performance: ${summary.avgPerformanceScore.toFixed(1)}/100`);
@@ -80,8 +80,8 @@ function displayOverview(trendData: TrendData[]): void {
 
   recentData.forEach(data => {
     const date = data.date;
-    const size = formatSizeString(data.totalSize);
-    const gzipSize = data.gzipSize ? ` (${formatSizeString(data.gzipSize)} gzipped)` : '';
+    const size = formatSize(data.totalSize);
+    const gzipSize = data.gzipSize ? ` (${formatSize(data.gzipSize)} gzipped)` : '';
     const perf = data.performanceScore ? ` | Perf: ${data.performanceScore}/100` : '';
 
     Logger.info(`${date}: ${size}${gzipSize}${perf}`);
@@ -111,10 +111,10 @@ function displaySpecificMetric(trendData: TrendData[], metric: string): void {
     switch (metric.toLowerCase()) {
       case 'size':
       case 'bundle-size':
-        value = formatSizeString(data.totalSize);
+        value = formatSize(data.totalSize);
         break;
       case 'gzip-size':
-        value = data.gzipSize ? formatSizeString(data.gzipSize) : 'N/A';
+        value = data.gzipSize ? formatSize(data.gzipSize) : 'N/A';
         break;
       case 'performance':
         value = data.performanceScore ? `${data.performanceScore}/100` : 'N/A';

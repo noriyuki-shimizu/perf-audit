@@ -96,11 +96,12 @@ describe('watchCommand', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     // Mock process.on and process.exit
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    vi.spyOn(process, 'on').mockImplementation((_event, _callback) => {
-      // Don't actually call the callback in tests
-      return process;
-    });
+    vi.spyOn(process, 'on').mockImplementation(
+      (): NodeJS.Process => {
+        // Don't actually call the callback in tests
+        return process;
+      },
+    );
     vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('Process exit');
     });

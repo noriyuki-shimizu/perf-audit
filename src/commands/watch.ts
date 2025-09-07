@@ -4,16 +4,11 @@ import path from 'path';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import { NotificationService } from '../core/notification-service.ts';
-import type { 
-  WatchOptions, 
-  BundleChange, 
-  PerformanceComparison, 
-  WatchState 
-} from '../types/commands.ts';
+import type { BundleChange, PerformanceComparison, WatchOptions, WatchState } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
-import { formatSizeString } from '../utils/size.ts';
+import { formatSize } from '../utils/size.ts';
 
 /** Default debounce interval in milliseconds */
 const DEFAULT_DEBOUNCE_INTERVAL = 1000;
@@ -31,7 +26,6 @@ const MIN_SIZE_CHANGE_THRESHOLD = 1024;
 const MIN_PERCENTAGE_CHANGE_THRESHOLD = 5;
 
 /** Bundle change interface */
-
 
 /**
  * Execute watch command to monitor bundle changes in real-time
@@ -646,7 +640,7 @@ const displayChanges = (comparison: PerformanceComparison): void => {
  */
 const displayTotalSizeChange = (totalSizeChange: number): void => {
   const totalChangeIcon = totalSizeChange > 0 ? '📈' : '📉';
-  const totalSizeText = `Total size change: ${formatSizeString(Math.abs(totalSizeChange))}`;
+  const totalSizeText = `Total size change: ${formatSize(Math.abs(totalSizeChange))}`;
 
   if (totalSizeChange > 0) {
     Logger.warn(`${totalChangeIcon} ${totalSizeText}`);
@@ -663,7 +657,7 @@ const displayIndividualChanges = (changes: BundleChange[]): void => {
   Logger.info('Bundle Changes:');
   changes.forEach(change => {
     const icon = change.isRegression ? '🔺' : '🔻';
-    const deltaText = change.delta > 0 ? `+${formatSizeString(change.delta)}` : formatSizeString(change.delta);
+    const deltaText = change.delta > 0 ? `+${formatSize(change.delta)}` : formatSize(change.delta);
     const percentageText = change.percentage > 0
       ? `+${change.percentage.toFixed(1)}%`
       : `${change.percentage.toFixed(1)}%`;
@@ -689,7 +683,7 @@ const displayChangeDetails = (change: BundleChange): void => {
   } else if (change.previousSize === 0) {
     Logger.debug('   New bundle added');
   } else {
-    Logger.debug(`   ${formatSizeString(change.previousSize)} → ${formatSizeString(change.currentSize)}`);
+    Logger.debug(`   ${formatSize(change.previousSize)} → ${formatSize(change.currentSize)}`);
   }
 };
 

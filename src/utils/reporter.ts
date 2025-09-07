@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
-import { formatDelta, formatSizeString } from './size.ts';
+import { formatDelta, formatSize } from './size.ts';
 
 export class ConsoleReporter {
   private config: PerfAuditConfig;
@@ -34,8 +34,8 @@ export class ConsoleReporter {
       console.log(chalk.yellow('\n📦 Client Bundles:'));
       clientBundles.forEach(bundle => {
         const status = this.getStatusIcon(bundle.status);
-        const sizeText = formatSizeString(bundle.size);
-        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSizeString(bundle.gzipSize)})` : '';
+        const sizeText = formatSize(bundle.size);
+        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSize(bundle.gzipSize)})` : '';
         const deltaText = bundle.delta ? ` ${this.formatDelta(bundle.delta)}` : '';
 
         console.log(`├─ ${bundle.name}: ${sizeText}${gzipText} ${status}${deltaText}`);
@@ -47,8 +47,8 @@ export class ConsoleReporter {
 
       const clientTotalSize = clientBundles.reduce((sum, b) => sum + b.size, 0);
       const clientTotalGzipSize = clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
-      const clientSizeText = formatSizeString(clientTotalSize);
-      const clientGzipText = clientTotalGzipSize > 0 ? ` (gzip: ${formatSizeString(clientTotalGzipSize)})` : '';
+      const clientSizeText = formatSize(clientTotalSize);
+      const clientGzipText = clientTotalGzipSize > 0 ? ` (gzip: ${formatSize(clientTotalGzipSize)})` : '';
       console.log(`└─ Client Total: ${clientSizeText}${clientGzipText}`);
     }
 
@@ -57,8 +57,8 @@ export class ConsoleReporter {
       console.log(chalk.green('\n🖥️ Server Bundles:'));
       serverBundles.forEach(bundle => {
         const status = this.getStatusIcon(bundle.status);
-        const sizeText = formatSizeString(bundle.size);
-        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSizeString(bundle.gzipSize)})` : '';
+        const sizeText = formatSize(bundle.size);
+        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSize(bundle.gzipSize)})` : '';
         const deltaText = bundle.delta ? ` ${this.formatDelta(bundle.delta)}` : '';
 
         console.log(`├─ ${bundle.name}: ${sizeText}${gzipText} ${status}${deltaText}`);
@@ -70,16 +70,16 @@ export class ConsoleReporter {
 
       const serverTotalSize = serverBundles.reduce((sum, b) => sum + b.size, 0);
       const serverTotalGzipSize = serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
-      const serverSizeText = formatSizeString(serverTotalSize);
-      const serverGzipText = serverTotalGzipSize > 0 ? ` (gzip: ${formatSizeString(serverTotalGzipSize)})` : '';
+      const serverSizeText = formatSize(serverTotalSize);
+      const serverGzipText = serverTotalGzipSize > 0 ? ` (gzip: ${formatSize(serverTotalGzipSize)})` : '';
       console.log(`└─ Server Total: ${serverSizeText}${serverGzipText}`);
     }
 
     // Overall total size
     if (result.analysisType === 'both' && clientBundles.length > 0 && serverBundles.length > 0) {
       console.log(chalk.blue('\n📊 Overall Total:'));
-      const totalSizeText = formatSizeString(totalSizes.size);
-      const totalGzipText = totalSizes.gzipSize ? ` (gzip: ${formatSizeString(totalSizes.gzipSize)})` : '';
+      const totalSizeText = formatSize(totalSizes.size);
+      const totalGzipText = totalSizes.gzipSize ? ` (gzip: ${formatSize(totalSizes.gzipSize)})` : '';
       console.log(`└─ Combined Total: ${totalSizeText}${totalGzipText}`);
     }
 
@@ -110,13 +110,14 @@ export class ConsoleReporter {
       if (bundle.status !== 'ok') {
         hasViolations = true;
         const status = this.getStatusIcon(bundle.status);
-        const sizeText = formatSizeString(bundle.size);
+        const sizeText = formatSize(bundle.size);
 
         console.log(`${status} ${bundle.name}: ${sizeText}`);
 
         // Show budget details
-        const budgetKey = this.getBundgetKey(bundle.name);
-        const budgetConfig = bundle.type === 'server' ? this.config.budgets.server : this.config.budgets.client;
+        const budgetKey = this.getBudgetKey(bundle.name);
+        const bundleType = bundle.type ?? 'client';
+        const budgetConfig = bundleType === 'server' ? this.config.budgets.server : this.config.budgets.client;
         const budget = budgetConfig.bundles[budgetKey];
         if (budget) {
           console.log(`   Budget: ${budget.warning} (warning) / ${budget.max} (max)`);
@@ -230,9 +231,9 @@ export class ConsoleReporter {
 
   private showBundleDetails(bundle: BundleInfo): void {
     const indent = '   ';
-    console.log(chalk.dim(`${indent}Size: ${formatSizeString(bundle.size)}`));
+    console.log(chalk.dim(`${indent}Size: ${formatSize(bundle.size)}`));
     if (bundle.gzipSize) {
-      console.log(chalk.dim(`${indent}Gzipped: ${formatSizeString(bundle.gzipSize)}`));
+      console.log(chalk.dim(`${indent}Gzipped: ${formatSize(bundle.gzipSize)}`));
     }
   }
 
@@ -260,7 +261,7 @@ export class ConsoleReporter {
     }
   }
 
-  private getBundgetKey(bundleName: string): string {
+  private getBudgetKey(bundleName: string): string {
     const name = bundleName.toLowerCase();
 
     if (name.includes('main') || name.includes('index')) return 'main';

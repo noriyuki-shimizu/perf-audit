@@ -1,8 +1,6 @@
 import { PerformanceDatabase } from '../core/database.ts';
 import { AuditResult, CIContext } from '../types/config.ts';
-import { formatSizeString } from './size.ts';
-
-
+import { formatSize } from './size.ts';
 
 export class CIIntegration {
   static detectCIEnvironment(): CIContext {
@@ -73,7 +71,7 @@ export class CIIntegration {
 
     let summary = `# 🎯 Performance Audit Report\n\n`;
     summary += `**Status:** ${statusEmoji[result.budgetStatus]} ${result.budgetStatus.toUpperCase()}\n`;
-    summary += `**Total Size:** ${formatSizeString(totalSize)} (${formatSizeString(totalGzipSize)} gzipped)\n`;
+    summary += `**Total Size:** ${formatSize(totalSize)} (${formatSize(totalGzipSize)} gzipped)\n`;
     summary += `**Bundles:** ${result.bundles.length}\n\n`;
 
     // Bundle breakdown
@@ -82,11 +80,9 @@ export class CIIntegration {
     summary += `|--------|------|---------|--------|\n`;
 
     result.bundles.forEach(bundle => {
-      const gzipText = bundle.gzipSize ? formatSizeString(bundle.gzipSize) : 'N/A';
+      const gzipText = bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A';
       const statusIcon = statusEmoji[bundle.status];
-      summary += `| \`${bundle.name}\` | ${
-        formatSizeString(bundle.size)
-      } | ${gzipText} | ${statusIcon} ${bundle.status} |\n`;
+      summary += `| \`${bundle.name}\` | ${formatSize(bundle.size)} | ${gzipText} | ${statusIcon} ${bundle.status} |\n`;
     });
 
     // Lighthouse scores
@@ -148,7 +144,7 @@ export class CIIntegration {
       if (bundle.status === 'ok') {
         testCases.push(`    <testcase name="${testName}" classname="${className}" time="0"/>`);
       } else {
-        const message = `Bundle ${bundle.name} exceeds budget: ${formatSizeString(bundle.size)}`;
+        const message = `Bundle ${bundle.name} exceeds budget: ${formatSize(bundle.size)}`;
         const type = bundle.status === 'error' ? 'failure' : 'error';
         testCases.push(`    <testcase name="${testName}" classname="${className}" time="0">
       <${type} message="${message}"/>
@@ -187,9 +183,9 @@ ${testCases.join('\n')}
     if (ciContext.provider === 'github') {
       result.bundles.forEach(bundle => {
         if (bundle.status === 'error') {
-          console.log(`::error::Bundle ${bundle.name} exceeds size budget: ${formatSizeString(bundle.size)}`);
+          console.log(`::error::Bundle ${bundle.name} exceeds size budget: ${formatSize(bundle.size)}`);
         } else if (bundle.status === 'warning') {
-          console.log(`::warning::Bundle ${bundle.name} approaching size budget: ${formatSizeString(bundle.size)}`);
+          console.log(`::warning::Bundle ${bundle.name} approaching size budget: ${formatSize(bundle.size)}`);
         }
       });
 
@@ -221,7 +217,7 @@ ${testCases.join('\n')}
 
       let trend = `Compared to previous build:\n`;
       comparison.bundleDiff.forEach(diff => {
-        const change = diff.delta > 0 ? `+${formatSizeString(diff.delta)}` : formatSizeString(diff.delta);
+        const change = diff.delta > 0 ? `+${formatSize(diff.delta)}` : formatSize(diff.delta);
         const arrow = diff.delta > 0 ? '📈' : '📉';
         trend += `- \`${diff.name}\`: ${change} ${arrow}\n`;
       });

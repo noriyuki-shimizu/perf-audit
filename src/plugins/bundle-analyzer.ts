@@ -1,5 +1,5 @@
 import type { Plugin } from '../types/plugin.ts';
-import { formatSizeString } from '../utils/size.ts';
+import { formatSize } from '../utils/size.ts';
 
 // Bundle analyzer plugin that provides detailed bundle insights
 export const bundleAnalyzerPlugin: Plugin = {
@@ -19,7 +19,7 @@ export const bundleAnalyzerPlugin: Plugin = {
       if (largeBundles.length > 0) {
         insights.push(`🔍 Large bundles detected (${largeBundles.length}):`);
         largeBundles.forEach(bundle => {
-          insights.push(`  • ${bundle.name}: ${formatSizeString(bundle.size)}`);
+          insights.push(`  • ${bundle.name}: ${formatSize(bundle.size)}`);
         });
         insights.push('  Consider code splitting or dynamic imports');
       }
@@ -84,8 +84,8 @@ function checkPotentialDuplicates(bundles: Array<{ name: string; size: number; }
         && !bundle2.name.includes('chunk')
       ) {
         checks.push(
-          `${bundle1.name} and ${bundle2.name} have similar sizes (${formatSizeString(bundle1.size)} vs ${
-            formatSizeString(bundle2.size)
+          `${bundle1.name} and ${bundle2.name} have similar sizes (${formatSize(bundle1.size)} vs ${
+            formatSize(bundle2.size)
           })`,
         );
       }

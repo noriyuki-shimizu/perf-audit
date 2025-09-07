@@ -173,5 +173,3 @@ export interface BudgetJsonOutput {
   violations: BundleInfo[];
   timestamp: string;
 }
-
-
