@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-// Simple console logger with colors and icons
+/** Simple console logger with colors and icons */
 const formatMessage = (level: string, message: string, meta?: unknown): string => {
   let formattedMessage = message;
 

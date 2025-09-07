@@ -1,6 +1,4 @@
-/**
- * Bundle analyzer options interface
- */
+/** Bundle analyzer options interface */
 export interface AnalyzeOptions {
   outputPath: string;
   gzip: boolean;

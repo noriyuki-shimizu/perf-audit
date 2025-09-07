@@ -14,8 +14,6 @@ import { formatSize, normalizeSize } from '../utils/size.ts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/** Build data interface */
-
 /**
  * Start the performance dashboard server
  * @param options - Dashboard configuration options

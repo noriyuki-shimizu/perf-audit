@@ -1,8 +1,6 @@
 import type { AuditResult, BundleInfo, PerformanceMetrics } from './config.ts';
 
-/**
- * Plugin lifecycle hooks
- */
+/** Plugin lifecycle hooks */
 export type PluginHook =
   | 'beforeAnalysis'
   | 'afterAnalysis'
@@ -15,9 +13,7 @@ export type PluginHook =
   | 'onError'
   | 'onNotification';
 
-/**
- * Plugin context passed to each hook
- */
+/** Plugin context passed to each hook */
 export interface PluginContext {
   config: any;
   logger: {
@@ -29,9 +25,7 @@ export interface PluginContext {
   store: Map<string, any>; // Plugin-specific data store
 }
 
-/**
- * Data passed to different hooks
- */
+/** Data passed to different hooks */
 export interface HookData {
   beforeAnalysis?: { config: any; };
   afterAnalysis?: { result: AuditResult; };
@@ -45,9 +39,7 @@ export interface HookData {
   onNotification?: { type: string; data: any; };
 }
 
-/**
- * Plugin interface
- */
+/** Plugin interface */
 export interface Plugin {
   name: string;
   version?: string;
@@ -59,18 +51,14 @@ export interface Plugin {
   uninstall?: (context: PluginContext) => Promise<void> | void;
 }
 
-/**
- * Plugin configuration
- */
+/** Plugin configuration */
 export interface PluginConfig {
   name: string;
   enabled: boolean;
   options?: Record<string, any>;
 }
 
-/**
- * Performance tracking related types
- */
+/** Performance tracking related types */
 export interface PerformanceSnapshot {
   timestamp: string;
   totalSize: number;
@@ -80,6 +68,7 @@ export interface PerformanceSnapshot {
   lighthouse?: any;
 }
 
+/** Summary of trend analysis results, including size changes, bundle count changes, alerts, and recommendations. */
 export interface TrendAnalysis {
   sizeIncrease: boolean;
   sizeIncreasePercent: number;
@@ -88,9 +77,7 @@ export interface TrendAnalysis {
   recommendations: string[];
 }
 
-/**
- * CI Reporter types
- */
+/** CI Reporter types */
 export interface CISummary {
   status: 'success' | 'warning' | 'error';
   totalSize: string;

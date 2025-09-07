@@ -11,10 +11,10 @@ import type {
   BundleAnalysisContext,
 } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
+import { applyBudgetsToAllBundles, createAuditResult } from '../utils/bundle.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
 import {
   completeCommand,
-  getCurrentTimestamp,
   handleCommandError,
   initializeCommand,
   initializePluginManager,
@@ -39,8 +39,6 @@ const HEAVY_SERVER_BUNDLE_THRESHOLD = 100 * 1024;
 /** Minimum number of small chunks to trigger merge recommendation */
 const MIN_SMALL_CHUNKS_FOR_RECOMMENDATION = 3;
 
-/** Plugin manager context for analysis */
-
 /**
  * Execute bundle analysis command
  * @param options - Analysis options
@@ -64,7 +62,8 @@ export const analyzeCommand = async (options: AnalyzeOptions): Promise<void> => 
     }
 
     const bundlesWithBudgets = applyBudgetsToAllBundles(bundles, config);
-    const result = createAuditResult(bundlesWithBudgets, config);
+    const recommendations = generateRecommendations(bundlesWithBudgets);
+    const result = createAuditResult(bundlesWithBudgets, config, recommendations);
 
     await saveBuildData(result);
     await pluginManager.executeHook('afterAnalysis', { result } as AfterAnalysisContext);
@@ -144,46 +143,6 @@ const analyzeServerBundles = async (config: PerfAuditConfig, pluginManager: Plug
 
   const serverBundles = await serverAnalyzer.analyzeBundles();
   return serverBundles.map(bundle => ({ ...bundle, type: 'server' as const }));
-};
-
-/**
- * Apply budgets to all bundles (client and server)
- * @param bundles - Array of bundles
- * @param config - Configuration object
- * @returns Array of bundles with budget status applied
- */
-const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: PerfAuditConfig): BundleInfo[] => {
-  const clientBundles = bundles.filter(b => b.type === 'client');
-  const serverBundles = bundles.filter(b => b.type === 'server');
-  const bundlesWithBudgets: BundleInfo[] = [];
-
-  if (clientBundles.length > 0) {
-    const clientBundlesWithBudgets = BundleAnalyzer.applyBudgets(clientBundles, config.budgets.client.bundles);
-    bundlesWithBudgets.push(...clientBundlesWithBudgets);
-  }
-
-  if (serverBundles.length > 0) {
-    const serverBundlesWithBudgets = BundleAnalyzer.applyBudgets(serverBundles, config.budgets.server.bundles);
-    bundlesWithBudgets.push(...serverBundlesWithBudgets);
-  }
-
-  return bundlesWithBudgets;
-};
-
-/**
- * Create audit result object
- * @param bundlesWithBudgets - Bundles with budget status applied
- * @param config - Configuration object
- * @returns Audit result object
- */
-const createAuditResult = (bundlesWithBudgets: BundleInfo[], config: PerfAuditConfig): AuditResult => {
-  return {
-    timestamp: getCurrentTimestamp(),
-    bundles: bundlesWithBudgets,
-    recommendations: generateRecommendations(bundlesWithBudgets),
-    budgetStatus: getBudgetStatus(bundlesWithBudgets),
-    analysisType: config.analysis.target,
-  };
 };
 
 /**
@@ -364,18 +323,4 @@ const generateServerRecommendations = (bundles: BundleInfo[]): string[] => {
   }
 
   return recommendations;
-};
-
-/**
- * Determine overall budget status based on bundle statuses
- * @param bundles - Array of bundles with status
- * @returns Overall budget status
- */
-const getBudgetStatus = (bundles: BundleInfo[]): 'ok' | 'warning' | 'error' => {
-  const hasError = bundles.some(b => b.status === 'error');
-  const hasWarning = bundles.some(b => b.status === 'warning');
-
-  if (hasError) return 'error';
-  if (hasWarning) return 'warning';
-  return 'ok';
 };

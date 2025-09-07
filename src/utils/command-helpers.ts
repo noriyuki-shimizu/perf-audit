@@ -8,6 +8,7 @@ import { Logger } from './logger.ts';
 
 /**
  * 現在のタイムスタンプをISO文字列として取得
+ * @returns ISO形式のタイムスタンプ文字列
  */
 export const getCurrentTimestamp = (): string => {
   return new Date().toISOString();
@@ -15,6 +16,8 @@ export const getCurrentTimestamp = (): string => {
 
 /**
  * コマンド初期化の共通処理
+ * @param message - スピナーに表示するメッセージ
+ * @returns 設定とスピナーオブジェクト
  */
 export const initializeCommand = async (message = 'Loading configuration...'): Promise<{
   config: PerfAuditConfig;
@@ -27,6 +30,8 @@ export const initializeCommand = async (message = 'Loading configuration...'): P
 
 /**
  * プラグインマネージャーの初期化
+ * @param config - アプリケーション設定
+ * @returns 初期化されたプラグインマネージャー
  */
 export const initializePluginManager = async (config: PerfAuditConfig): Promise<PluginManager> => {
   const pluginManager = new PluginManager(config);
@@ -36,6 +41,8 @@ export const initializePluginManager = async (config: PerfAuditConfig): Promise<
 
 /**
  * データベースにビルドデータを保存
+ * @param result - 監査結果オブジェクト
+ * @param additionalData - 追加のビルドデータ（URL、デバイス、パフォーマンス指標など）
  */
 export const saveBuildData = async (
   result: AuditResult,
@@ -69,6 +76,10 @@ export const saveBuildData = async (
 
 /**
  * エラー発生時の共通処理
+ * @param spinner - スピナーオブジェクト
+ * @param error - 発生したエラー
+ * @param message - スピナーに表示するメッセージ
+ * @param config - アプリケーション設定（プラグイン用）
  */
 export const handleCommandError = async (
   spinner: Ora,
@@ -98,6 +109,10 @@ export const handleCommandError = async (
 
 /**
  * コマンド正常終了の共通処理
+ * @param spinner - スピナーオブジェクト
+ * @param message - スピナーに表示するメッセージ
+ * @param shouldExit - 終了するかどうか
+ * @param exitCode - 終了コード
  */
 export const completeCommand = (
   spinner: Ora,
@@ -114,6 +129,7 @@ export const completeCommand = (
 
 /**
  * 条件に応じてプロセス終了
+ * @param status - 'ok', 'warning', 'error' のいずれかのステータス
  */
 export const exitBasedOnStatus = (status: 'ok' | 'warning' | 'error'): void => {
   switch (status) {

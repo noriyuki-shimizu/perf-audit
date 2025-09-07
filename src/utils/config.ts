@@ -3,6 +3,7 @@ import path from 'path';
 import { PerfAuditConfig } from '../types/config.ts';
 import { Logger } from './logger.ts';
 
+/** デフォルト設定 */
 const DEFAULT_CONFIG: PerfAuditConfig = {
   project: {
     client: {
@@ -51,6 +52,11 @@ const DEFAULT_CONFIG: PerfAuditConfig = {
   },
 };
 
+/**
+ * Load configuration from file or use default
+ * @param configPath - Optional path to the configuration file
+ * @returns Promise that resolves to the loaded configuration object
+ */
 export async function loadConfig(configPath?: string): Promise<PerfAuditConfig> {
   const defaultConfigPath = path.join(process.cwd(), 'perf-audit.config.js');
   const finalConfigPath = configPath || defaultConfigPath;
@@ -72,6 +78,12 @@ export async function loadConfig(configPath?: string): Promise<PerfAuditConfig> 
   return DEFAULT_CONFIG;
 }
 
+/**
+ * Merge user configuration with default settings
+ * @param defaultConfig Default configuration object
+ * @param userConfig User-defined configuration object
+ * @returns Merged configuration object
+ */
 function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAuditConfig>): PerfAuditConfig {
   return {
     project: { ...defaultConfig.project, ...userConfig.project },
@@ -91,6 +103,10 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
   };
 }
 
+/**
+ * Generate a sample configuration file
+ * @param outputPath - 出力先のパス（デフォルトは 'perf-audit.config.js'）
+ */
 export function generateConfigFile(outputPath: string = 'perf-audit.config.js'): void {
   const configContent = `export default {
   // プロジェクト設定
