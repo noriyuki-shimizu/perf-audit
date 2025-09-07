@@ -3,6 +3,10 @@ import path from 'path';
 import { generateConfigFile } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 
+/**
+ * Initialize performance audit configuration and directories
+ * @returns Promise that resolves when initialization is complete
+ */
 export async function initCommand(): Promise<void> {
   Logger.section('Initializing Performance Audit CLI...');
 

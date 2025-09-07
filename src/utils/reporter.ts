@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
-import { formatDelta, formatSize } from './size.ts';
+import { formatDelta, formatSizeString } from './size.ts';
 
 export class ConsoleReporter {
   private config: PerfAuditConfig;
@@ -17,26 +17,71 @@ export class ConsoleReporter {
     console.log(chalk.blue('\n🎯 Performance Audit Report'));
     console.log(chalk.blue('═══════════════════════════════════════════'));
 
-    // Bundle analysis section
-    console.log(chalk.blue('\n📦 Bundle Analysis'));
+    // Analysis type indicator
+    const typeIndicator = result.analysisType === 'both'
+      ? '📦🖥️ Client & Server Analysis'
+      : result.analysisType === 'client'
+      ? '📦 Client-side Analysis'
+      : '🖥️ Server-side Analysis';
+    console.log(chalk.blue(`\n${typeIndicator}`));
 
-    result.bundles.forEach(bundle => {
-      const status = this.getStatusIcon(bundle.status);
-      const sizeText = formatSize(bundle.size);
-      const gzipText = bundle.gzipSize ? ` (gzip: ${formatSize(bundle.gzipSize)})` : '';
-      const deltaText = bundle.delta ? ` ${this.formatDelta(bundle.delta)}` : '';
+    // Separate client and server bundles
+    const clientBundles = result.bundles.filter(b => b.type === 'client');
+    const serverBundles = result.bundles.filter(b => b.type === 'server');
 
-      console.log(`├─ ${bundle.name}: ${sizeText}${gzipText} ${status}${deltaText}`);
+    // Client bundles section
+    if (clientBundles.length > 0) {
+      console.log(chalk.yellow('\n📦 Client Bundles:'));
+      clientBundles.forEach(bundle => {
+        const status = this.getStatusIcon(bundle.status);
+        const sizeText = formatSizeString(bundle.size);
+        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSizeString(bundle.gzipSize)})` : '';
+        const deltaText = bundle.delta ? ` ${this.formatDelta(bundle.delta)}` : '';
 
-      if (showDetails && bundle.status !== 'ok') {
-        this.showBundleDetails(bundle);
-      }
-    });
+        console.log(`├─ ${bundle.name}: ${sizeText}${gzipText} ${status}${deltaText}`);
 
-    // Total size
-    const totalSizeText = formatSize(totalSizes.size);
-    const totalGzipText = totalSizes.gzipSize ? ` (gzip: ${formatSize(totalSizes.gzipSize)})` : '';
-    console.log(`└─ Total: ${totalSizeText}${totalGzipText}`);
+        if (showDetails && bundle.status !== 'ok') {
+          this.showBundleDetails(bundle);
+        }
+      });
+
+      const clientTotalSize = clientBundles.reduce((sum, b) => sum + b.size, 0);
+      const clientTotalGzipSize = clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+      const clientSizeText = formatSizeString(clientTotalSize);
+      const clientGzipText = clientTotalGzipSize > 0 ? ` (gzip: ${formatSizeString(clientTotalGzipSize)})` : '';
+      console.log(`└─ Client Total: ${clientSizeText}${clientGzipText}`);
+    }
+
+    // Server bundles section
+    if (serverBundles.length > 0) {
+      console.log(chalk.green('\n🖥️ Server Bundles:'));
+      serverBundles.forEach(bundle => {
+        const status = this.getStatusIcon(bundle.status);
+        const sizeText = formatSizeString(bundle.size);
+        const gzipText = bundle.gzipSize ? ` (gzip: ${formatSizeString(bundle.gzipSize)})` : '';
+        const deltaText = bundle.delta ? ` ${this.formatDelta(bundle.delta)}` : '';
+
+        console.log(`├─ ${bundle.name}: ${sizeText}${gzipText} ${status}${deltaText}`);
+
+        if (showDetails && bundle.status !== 'ok') {
+          this.showBundleDetails(bundle);
+        }
+      });
+
+      const serverTotalSize = serverBundles.reduce((sum, b) => sum + b.size, 0);
+      const serverTotalGzipSize = serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+      const serverSizeText = formatSizeString(serverTotalSize);
+      const serverGzipText = serverTotalGzipSize > 0 ? ` (gzip: ${formatSizeString(serverTotalGzipSize)})` : '';
+      console.log(`└─ Server Total: ${serverSizeText}${serverGzipText}`);
+    }
+
+    // Overall total size
+    if (result.analysisType === 'both' && clientBundles.length > 0 && serverBundles.length > 0) {
+      console.log(chalk.blue('\n📊 Overall Total:'));
+      const totalSizeText = formatSizeString(totalSizes.size);
+      const totalGzipText = totalSizes.gzipSize ? ` (gzip: ${formatSizeString(totalSizes.gzipSize)})` : '';
+      console.log(`└─ Combined Total: ${totalSizeText}${totalGzipText}`);
+    }
 
     // Performance metrics (if available)
     if (result.lighthouse) {
@@ -65,13 +110,14 @@ export class ConsoleReporter {
       if (bundle.status !== 'ok') {
         hasViolations = true;
         const status = this.getStatusIcon(bundle.status);
-        const sizeText = formatSize(bundle.size);
+        const sizeText = formatSizeString(bundle.size);
 
         console.log(`${status} ${bundle.name}: ${sizeText}`);
 
         // Show budget details
         const budgetKey = this.getBundgetKey(bundle.name);
-        const budget = this.config.budgets.bundles[budgetKey];
+        const budgetConfig = bundle.type === 'server' ? this.config.budgets.server : this.config.budgets.client;
+        const budget = budgetConfig.bundles[budgetKey];
         if (budget) {
           console.log(`   Budget: ${budget.warning} (warning) / ${budget.max} (max)`);
         }
@@ -184,9 +230,9 @@ export class ConsoleReporter {
 
   private showBundleDetails(bundle: BundleInfo): void {
     const indent = '   ';
-    console.log(chalk.dim(`${indent}Size: ${formatSize(bundle.size)}`));
+    console.log(chalk.dim(`${indent}Size: ${formatSizeString(bundle.size)}`));
     if (bundle.gzipSize) {
-      console.log(chalk.dim(`${indent}Gzipped: ${formatSize(bundle.gzipSize)}`));
+      console.log(chalk.dim(`${indent}Gzipped: ${formatSizeString(bundle.gzipSize)}`));
     }
   }
 

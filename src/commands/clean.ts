@@ -3,33 +3,58 @@ import path from 'path';
 import readline from 'readline';
 import { PerformanceDatabase } from '../core/database.ts';
 import type { CleanOptions } from '../types/commands.ts';
+import type { PerfAuditConfig } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 
-export async function cleanCommand(options: CleanOptions): Promise<void> {
+/** Default retention period in days */
+const DEFAULT_RETENTION_DAYS = 30;
+
+/** Cache retention period in days */
+const CACHE_RETENTION_DAYS = 7;
+
+/** Milliseconds per day */
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/** Valid report file extensions */
+const REPORT_EXTENSIONS = ['.json', '.html'] as const;
+
+/** Database file path */
+const DATABASE_PATH = '.perf-audit/performance.db';
+
+/** Cache directory path */
+const CACHE_DIRECTORY = '.perf-audit/cache';
+
+/** Configuration interface for clean operations */
+
+
+/**
+ * Execute performance data cleaning command
+ * @param options - Clean command options
+ */
+export const cleanCommand = async (options: CleanOptions): Promise<void> => {
   Logger.section('Cleaning performance data...');
 
   try {
     const config = await loadConfig();
 
-    // Determine what to clean
     if (options.all) {
-      // Clean all data
       await cleanAllData(config, options.force);
-    } else if (options.days) {
-      // Clean data older than specified days
-      await cleanOldData(config, options.days, options.force);
     } else {
-      // Default: clean data older than 30 days
-      await cleanOldData(config, 30, options.force);
+      const retentionDays = options.days ?? DEFAULT_RETENTION_DAYS;
+      await cleanOldData(config, retentionDays, options.force);
     }
   } catch (error) {
-    Logger.error('Clean failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-    process.exit(1);
+    handleCleanError(error);
   }
-}
+};
 
-async function cleanAllData(config: any, force: boolean = false): Promise<void> {
+/**
+ * Clean all performance data including database and reports
+ * @param config - Application configuration
+ * @param force - Skip confirmation prompt
+ */
+const cleanAllData = async (config: PerfAuditConfig, force: boolean = false): Promise<void> => {
   if (!force) {
     const confirmed = await confirmAction(
       'This will delete ALL performance data including database and reports. Are you sure?',
@@ -40,42 +65,21 @@ async function cleanAllData(config: any, force: boolean = false): Promise<void> 
     }
   }
 
-  // Clean database
-  const dbPath = path.resolve('.perf-audit/performance.db');
-  if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-    Logger.success('Database deleted');
-  }
+  cleanDatabase();
+  const deletedReportsCount = cleanAllReports(config);
+  cleanCacheDirectory();
 
-  // Clean reports
-  const reportsDir = path.resolve(config.reports.outputDir);
-  if (fs.existsSync(reportsDir)) {
-    const files = fs.readdirSync(reportsDir);
-    let deletedCount = 0;
-
-    for (const file of files) {
-      const filePath = path.join(reportsDir, file);
-      if (file.endsWith('.json') || file.endsWith('.html')) {
-        fs.unlinkSync(filePath);
-        deletedCount++;
-      }
-    }
-
-    Logger.success(`${deletedCount} report files deleted`);
-  }
-
-  // Clean cache directory
-  const cacheDir = path.resolve('.perf-audit/cache');
-  if (fs.existsSync(cacheDir)) {
-    fs.rmSync(cacheDir, { recursive: true, force: true });
-    fs.mkdirSync(cacheDir, { recursive: true });
-    Logger.success('Cache directory cleaned');
-  }
-
+  Logger.success(`${deletedReportsCount} report files deleted`);
   Logger.complete('All performance data has been cleaned!');
-}
+};
 
-async function cleanOldData(config: any, days: number, force: boolean = false): Promise<void> {
+/**
+ * Clean performance data older than specified days
+ * @param config - Application configuration
+ * @param days - Retention period in days
+ * @param force - Skip confirmation prompt
+ */
+const cleanOldData = async (config: PerfAuditConfig, days: number, force: boolean = false): Promise<void> => {
   if (!force) {
     const confirmed = await confirmAction(
       `This will delete performance data older than ${days} days. Are you sure?`,
@@ -86,45 +90,151 @@ async function cleanOldData(config: any, days: number, force: boolean = false): 
     }
   }
 
-  // Clean old database records
+  const deletedBuilds = cleanOldDatabaseRecords(days);
+  const deletedReportsCount = cleanOldReports(config, days);
+  cleanOldCacheFiles();
+
+  Logger.success(`${deletedBuilds} old builds deleted from database`);
+  Logger.success(`${deletedReportsCount} old report files deleted`);
+  Logger.success('Old cache files cleaned');
+  Logger.complete(`Performance data older than ${days} days has been cleaned!`);
+};
+
+/**
+ * Clean database file completely
+ */
+const cleanDatabase = (): void => {
+  const dbPath = path.resolve(DATABASE_PATH);
+  if (fs.existsSync(dbPath)) {
+    fs.unlinkSync(dbPath);
+    Logger.success('Database deleted');
+  }
+};
+
+/**
+ * Clean all report files
+ * @param config - Application configuration
+ * @returns Number of deleted files
+ */
+const cleanAllReports = (config: PerfAuditConfig): number => {
+  const reportsDir = path.resolve(config.reports.outputDir);
+  if (!fs.existsSync(reportsDir)) {
+    return 0;
+  }
+
+  const files = fs.readdirSync(reportsDir);
+  let deletedCount = 0;
+
+  for (const file of files) {
+    if (isReportFile(file)) {
+      const filePath = path.join(reportsDir, file);
+      fs.unlinkSync(filePath);
+      deletedCount++;
+    }
+  }
+
+  return deletedCount;
+};
+
+/**
+ * Clean cache directory completely
+ */
+const cleanCacheDirectory = (): void => {
+  const cacheDir = path.resolve(CACHE_DIRECTORY);
+  if (fs.existsSync(cacheDir)) {
+    fs.rmSync(cacheDir, { recursive: true, force: true });
+    fs.mkdirSync(cacheDir, { recursive: true });
+    Logger.success('Cache directory cleaned');
+  }
+};
+
+/**
+ * Clean old database records
+ * @param days - Retention period in days
+ * @returns Number of deleted builds
+ */
+const cleanOldDatabaseRecords = (days: number): number => {
   const db = new PerformanceDatabase();
   const deletedBuilds = db.cleanup(days);
   db.close();
+  return deletedBuilds;
+};
 
-  Logger.success(`${deletedBuilds} old builds deleted from database`);
-
-  // Clean old report files
+/**
+ * Clean old report files
+ * @param config - Application configuration
+ * @param days - Retention period in days
+ * @returns Number of deleted files
+ */
+const cleanOldReports = (config: PerfAuditConfig, days: number): number => {
   const reportsDir = path.resolve(config.reports.outputDir);
-  if (fs.existsSync(reportsDir)) {
-    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
-    const files = fs.readdirSync(reportsDir);
-    let deletedCount = 0;
+  if (!fs.existsSync(reportsDir)) {
+    return 0;
+  }
 
-    for (const file of files) {
-      const filePath = path.join(reportsDir, file);
-      const stats = fs.statSync(filePath);
+  const cutoffTime = calculateCutoffTime(days);
+  const files = fs.readdirSync(reportsDir);
+  let deletedCount = 0;
 
-      if (stats.mtimeMs < cutoffTime && (file.endsWith('.json') || file.endsWith('.html'))) {
-        fs.unlinkSync(filePath);
-        deletedCount++;
-      }
+  for (const file of files) {
+    const filePath = path.join(reportsDir, file);
+    const stats = fs.statSync(filePath);
+
+    if (isOldReportFile(file, stats, cutoffTime)) {
+      fs.unlinkSync(filePath);
+      deletedCount++;
     }
-
-    Logger.success(`${deletedCount} old report files deleted`);
   }
 
-  // Clean old cache files
-  const cacheDir = path.resolve('.perf-audit/cache');
+  return deletedCount;
+};
+
+/**
+ * Clean old cache files
+ */
+const cleanOldCacheFiles = (): void => {
+  const cacheDir = path.resolve(CACHE_DIRECTORY);
   if (fs.existsSync(cacheDir)) {
-    const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000); // Clean cache older than 7 days
+    const cutoffTime = calculateCutoffTime(CACHE_RETENTION_DAYS);
     cleanDirectoryRecursive(cacheDir, cutoffTime);
-    Logger.success('Old cache files cleaned');
   }
+};
 
-  Logger.complete(`Performance data older than ${days} days has been cleaned!`);
-}
+/**
+ * Calculate cutoff timestamp for file age comparison
+ * @param days - Number of days to go back
+ * @returns Cutoff timestamp in milliseconds
+ */
+const calculateCutoffTime = (days: number): number => {
+  return Date.now() - (days * MILLISECONDS_PER_DAY);
+};
 
-function cleanDirectoryRecursive(dir: string, cutoffTime: number): void {
+/**
+ * Check if file is a report file based on extension
+ * @param fileName - Name of the file
+ * @returns Whether the file is a report file
+ */
+const isReportFile = (fileName: string): boolean => {
+  return REPORT_EXTENSIONS.some(ext => fileName.endsWith(ext));
+};
+
+/**
+ * Check if file is an old report file that should be deleted
+ * @param fileName - Name of the file
+ * @param stats - File statistics
+ * @param cutoffTime - Cutoff timestamp
+ * @returns Whether the file should be deleted
+ */
+const isOldReportFile = (fileName: string, stats: fs.Stats, cutoffTime: number): boolean => {
+  return stats.mtimeMs < cutoffTime && isReportFile(fileName);
+};
+
+/**
+ * Recursively clean directory of old files
+ * @param dir - Directory path
+ * @param cutoffTime - Cutoff timestamp for file age
+ */
+const cleanDirectoryRecursive = (dir: string, cutoffTime: number): void => {
   const items = fs.readdirSync(dir);
 
   for (const item of items) {
@@ -133,18 +243,40 @@ function cleanDirectoryRecursive(dir: string, cutoffTime: number): void {
 
     if (stats.isDirectory()) {
       cleanDirectoryRecursive(itemPath, cutoffTime);
-      // Remove empty directories
-      const remainingItems = fs.readdirSync(itemPath);
-      if (remainingItems.length === 0) {
-        fs.rmdirSync(itemPath);
-      }
-    } else if (stats.mtimeMs < cutoffTime) {
+      removeEmptyDirectory(itemPath);
+    } else if (isOldFile(stats, cutoffTime)) {
       fs.unlinkSync(itemPath);
     }
   }
-}
+};
 
-async function confirmAction(message: string): Promise<boolean> {
+/**
+ * Check if file is old based on modification time
+ * @param stats - File statistics
+ * @param cutoffTime - Cutoff timestamp
+ * @returns Whether the file is old
+ */
+const isOldFile = (stats: fs.Stats, cutoffTime: number): boolean => {
+  return stats.mtimeMs < cutoffTime;
+};
+
+/**
+ * Remove directory if it's empty
+ * @param dirPath - Directory path
+ */
+const removeEmptyDirectory = (dirPath: string): void => {
+  const remainingItems = fs.readdirSync(dirPath);
+  if (remainingItems.length === 0) {
+    fs.rmdirSync(dirPath);
+  }
+};
+
+/**
+ * Show confirmation prompt to user
+ * @param message - Confirmation message
+ * @returns Promise resolving to user confirmation
+ */
+const confirmAction = async (message: string): Promise<boolean> => {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -153,7 +285,18 @@ async function confirmAction(message: string): Promise<boolean> {
   return new Promise(resolve => {
     rl.question(Logger.prompt(`${message} (y/N): `), answer => {
       rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+      const normalizedAnswer = answer.toLowerCase();
+      resolve(normalizedAnswer === 'y' || normalizedAnswer === 'yes');
     });
   });
-}
+};
+
+/**
+ * Handle errors during clean operation
+ * @param error - Error object
+ */
+const handleCleanError = (error: unknown): void => {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  Logger.error('Clean failed', { error: errorMessage });
+  process.exit(1);
+};

@@ -94,7 +94,7 @@ export class BundleAnalyzer {
 
   static calculateTotalSize(bundles: BundleInfo[]): { size: number; gzipSize?: number; } {
     const totalSize = bundles.reduce((sum, bundle) => sum + bundle.size, 0);
-    const totalGzipSize = bundles.every(b => b.gzipSize !== undefined)
+    const totalGzipSize = bundles.length > 0 && bundles.every(b => b.gzipSize !== undefined)
       ? bundles.reduce((sum, bundle) => sum + (bundle.gzipSize || 0), 0)
       : undefined;
 

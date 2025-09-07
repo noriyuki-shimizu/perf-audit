@@ -69,7 +69,6 @@ export class PluginManager extends EventEmitter {
       store,
     };
 
-    // Install plugin
     if (plugin.install) {
       await plugin.install(context);
     }

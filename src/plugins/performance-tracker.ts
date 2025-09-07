@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import type { Plugin } from '../types/plugin.ts';
-import { formatSize } from '../utils/size.ts';
+import type { Plugin, PerformanceSnapshot, TrendAnalysis } from '../types/plugin.ts';
+import { formatSizeString } from '../utils/size.ts';
 
 // Performance tracking plugin that monitors trends over time
 export const performanceTrackerPlugin: Plugin = {
@@ -54,7 +54,7 @@ export const performanceTrackerPlugin: Plugin = {
         }
       }
 
-      context.logger.info(`Performance snapshot saved: ${formatSize(snapshot.totalSize)}`);
+      context.logger.info(`Performance snapshot saved: ${formatSizeString(snapshot.totalSize)}`);
     },
 
     beforeReport: async (context, data) => {
@@ -71,22 +71,7 @@ export const performanceTrackerPlugin: Plugin = {
   },
 };
 
-interface PerformanceSnapshot {
-  timestamp: string;
-  totalSize: number;
-  totalGzipSize: number;
-  bundleCount: number;
-  budgetStatus: string;
-  lighthouse?: any;
-}
 
-interface TrendAnalysis {
-  sizeIncrease: boolean;
-  sizeIncreasePercent: number;
-  bundleCountChange: number;
-  alerts: string[];
-  recommendations: string[];
-}
 
 function loadRecentSnapshots(trackingDir: string, count: number): PerformanceSnapshot[] {
   if (!fs.existsSync(trackingDir)) {
@@ -127,7 +112,7 @@ function analyzeTrends(snapshots: PerformanceSnapshot[]): TrendAnalysis {
 
   // Size increase alerts
   if (sizeDelta > 50 * 1024) { // > 50KB increase
-    alerts.push(`Bundle size increased by ${formatSize(sizeDelta)} (${sizeIncreasePercent.toFixed(1)}%)`);
+    alerts.push(`Bundle size increased by ${formatSizeString(sizeDelta)} (${sizeIncreasePercent.toFixed(1)}%)`);
     recommendations.push('📈 Investigate recent changes that may have increased bundle size');
   }
 

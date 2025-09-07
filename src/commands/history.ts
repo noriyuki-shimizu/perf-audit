@@ -2,8 +2,12 @@ import { PerformanceDatabase } from '../core/database.ts';
 import type { HistoryOptions } from '../types/commands.ts';
 import type { TrendData } from '../types/database.ts';
 import { Logger } from '../utils/logger.ts';
-import { formatSize } from '../utils/size.ts';
+import { formatSizeString } from '../utils/size.ts';
 
+/**
+ * Execute performance history command to display historical performance data
+ * @param options - History command options including format and metric filters
+ */
 export function historyCommand(options: HistoryOptions): void {
   const db = new PerformanceDatabase();
 
@@ -52,8 +56,8 @@ export function historyCommand(options: HistoryOptions): void {
     const summary = generateSummary(trendData);
     Logger.section('Summary');
     Logger.info(`Total builds: ${trendData.length}`);
-    Logger.info(`Avg bundle size: ${formatSize(summary.avgBundleSize)}`);
-    Logger.info(`Size trend: ${summary.sizeTrend > 0 ? '📈' : '📉'} ${formatSize(Math.abs(summary.sizeTrend))}`);
+    Logger.info(`Avg bundle size: ${formatSizeString(summary.avgBundleSize)}`);
+    Logger.info(`Size trend: ${summary.sizeTrend > 0 ? '📈' : '📉'} ${formatSizeString(Math.abs(summary.sizeTrend))}`);
 
     if (summary.avgPerformanceScore > 0) {
       Logger.info(`Avg performance: ${summary.avgPerformanceScore.toFixed(1)}/100`);
@@ -66,14 +70,18 @@ export function historyCommand(options: HistoryOptions): void {
   }
 }
 
+/**
+ * Display overview of performance trends including bundle sizes and Core Web Vitals
+ * @param trendData - Array of historical trend data
+ */
 function displayOverview(trendData: TrendData[]): void {
   Logger.section('Bundle Size Trend');
   const recentData = trendData.slice(0, 10);
 
   recentData.forEach(data => {
     const date = data.date;
-    const size = formatSize(data.totalSize);
-    const gzipSize = data.gzipSize ? ` (${formatSize(data.gzipSize)} gzipped)` : '';
+    const size = formatSizeString(data.totalSize);
+    const gzipSize = data.gzipSize ? ` (${formatSizeString(data.gzipSize)} gzipped)` : '';
     const perf = data.performanceScore ? ` | Perf: ${data.performanceScore}/100` : '';
 
     Logger.info(`${date}: ${size}${gzipSize}${perf}`);
@@ -89,6 +97,11 @@ function displayOverview(trendData: TrendData[]): void {
   }
 }
 
+/**
+ * Display trend data for a specific performance metric
+ * @param trendData - Array of historical trend data
+ * @param metric - Specific metric to display (size, gzip-size, performance, fcp, lcp, cls, tti)
+ */
 function displaySpecificMetric(trendData: TrendData[], metric: string): void {
   Logger.section(`${metric.toUpperCase()} Trend`);
 
@@ -98,10 +111,10 @@ function displaySpecificMetric(trendData: TrendData[], metric: string): void {
     switch (metric.toLowerCase()) {
       case 'size':
       case 'bundle-size':
-        value = formatSize(data.totalSize);
+        value = formatSizeString(data.totalSize);
         break;
       case 'gzip-size':
-        value = data.gzipSize ? formatSize(data.gzipSize) : 'N/A';
+        value = data.gzipSize ? formatSizeString(data.gzipSize) : 'N/A';
         break;
       case 'performance':
         value = data.performanceScore ? `${data.performanceScore}/100` : 'N/A';
@@ -124,6 +137,11 @@ function displaySpecificMetric(trendData: TrendData[], metric: string): void {
   });
 }
 
+/**
+ * Generate summary statistics from historical trend data
+ * @param trendData - Array of historical trend data
+ * @returns Summary object containing average bundle size, size trend, and average performance score
+ */
 function generateSummary(trendData: TrendData[]): {
   avgBundleSize: number;
   sizeTrend: number;

@@ -25,9 +25,13 @@
                     <h3>Total Builds</h3>
                     <div class="stat-value" id="totalBuilds">-</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Average Size</h3>
-                    <div class="stat-value" id="averageSize">-</div>
+                <div class="stat-card client-stats">
+                    <h3>クライアント合計サイズ</h3>
+                    <div class="stat-value" id="clientTotalSize">-</div>
+                </div>
+                <div class="stat-card server-stats">
+                    <h3>サーバー合計サイズ</h3>
+                    <div class="stat-value" id="serverTotalSize">-</div>
                 </div>
                 <div class="stat-card">
                     <h3>Last Build Status</h3>
@@ -35,8 +39,72 @@
                 </div>
             </div>
 
+            <div class="filters-container">
+                <div class="filters-header">
+                    <h2 class="filters-title">
+                        <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"/>
+                        </svg>
+                        トータルバンドルサイズ トレンド
+                    </h2>
+                </div>
+                <div class="filters-card">
+                    <div class="filters-grid">
+                        <div class="filter-item">
+                            <label class="filter-label" for="startDate">
+                                <svg class="filter-icon" viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
+                                </svg>
+                                開始日
+                            </label>
+                            <input type="date" id="startDate" class="filter-input" />
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label" for="endDate">
+                                <svg class="filter-icon" viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
+                                </svg>
+                                終了日
+                            </label>
+                            <input type="date" id="endDate" class="filter-input" />
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label" for="viewMode">
+                                <svg class="filter-icon" viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M12,18.17L8.83,15L7.42,16.41L12,21L16.59,16.41L15.17,15M12,5.83L15.17,9L16.58,7.59L12,3L7.41,7.59L8.83,9L12,5.83Z"/>
+                                </svg>
+                                表示モード
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="viewMode" class="filter-select">
+                                    <option value="both">クライアント・サーバー両方</option>
+                                    <option value="client">クライアントのみ</option>
+                                    <option value="server">サーバーのみ</option>
+                                </select>
+                                <svg class="select-arrow" viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button id="applyFilters" class="btn btn-primary">
+                            <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M12,10V17H14V10H12Z"/>
+                            </svg>
+                            フィルタ適用
+                        </button>
+                        <button id="resetFilters" class="btn btn-secondary">
+                            <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M12,4C14.1,4 16.1,4.8 17.6,6.3C20.7,9.4 20.7,14.5 17.6,17.6C15.8,19.5 13.3,20.2 10.9,19.9L11.4,17.9C13.1,18.1 14.9,17.5 16.2,16.2C18.5,13.9 18.5,10.1 16.2,7.7C15.1,6.6 13.5,6 12,6V10.6L7,5.6L12,0.6V4Z"/>
+                            </svg>
+                            リセット
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="chart-container">
-                <h2>Bundle Size Trends</h2>
                 <canvas id="trendsChart"></canvas>
             </div>
 
