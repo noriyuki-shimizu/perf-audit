@@ -1,6 +1,6 @@
 import type { NotificationConfig, PerformanceAlert } from '../types/notification.ts';
-import { formatSize } from '../utils/size.ts';
 import { Logger } from '../utils/logger.ts';
+import { formatSize } from '../utils/size.ts';
 
 export class NotificationService {
   private config: NotificationConfig;
