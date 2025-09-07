@@ -2,6 +2,7 @@ import ora from 'ora';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import type { BudgetJsonOutput, BudgetOptions, BudgetStatus, BundleType } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
+import { applyBudgetsToAllBundles, getBudgetStatus } from '../utils/bundle.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
 import { getCurrentTimestamp } from '../utils/command-helpers.ts';
 import { loadConfig } from '../utils/config.ts';
@@ -21,8 +22,6 @@ const WARNING_EXIT_CODE = 2;
 
 /** Error exit code for CI environments */
 const ERROR_EXIT_CODE = 1;
-
-/** Budget status type */
 
 /**
  * Execute performance budget check command
@@ -175,30 +174,6 @@ const handleNoBundles = (spinner: unknown, useSpinner: boolean, format: string):
   if (format !== 'json') {
     Logger.warn('Make sure your project has been built and the output path is correct.');
   }
-};
-
-/**
- * Apply budgets to all bundles (client and server)
- * @param bundles - Array of bundles
- * @param config - Application configuration
- * @returns Array of bundles with budget status applied
- */
-const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: PerfAuditConfig): BundleInfo[] => {
-  const clientBundles = bundles.filter(b => b.type === 'client');
-  const serverBundles = bundles.filter(b => b.type === 'server');
-  const bundlesWithBudgets: BundleInfo[] = [];
-
-  if (clientBundles.length > 0) {
-    const clientBundlesWithBudgets = BundleAnalyzer.applyBudgets(clientBundles, config.budgets.client.bundles);
-    bundlesWithBudgets.push(...clientBundlesWithBudgets);
-  }
-
-  if (serverBundles.length > 0) {
-    const serverBundlesWithBudgets = BundleAnalyzer.applyBudgets(serverBundles, config.budgets.server.bundles);
-    bundlesWithBudgets.push(...serverBundlesWithBudgets);
-  }
-
-  return bundlesWithBudgets;
 };
 
 /**
@@ -365,24 +340,6 @@ const handleBudgetError = (
     Logger.error(error instanceof Error ? error.message : 'Unknown error');
   }
   process.exit(ERROR_EXIT_CODE);
-};
-
-/**
- * Get overall budget status combining bundle and total statuses
- * @param bundles - Array of bundles with status
- * @param totalStatus - Overall total budget status
- * @returns Combined budget status
- */
-const getBudgetStatus = (bundles: BundleInfo[], totalStatus: BudgetStatus): BudgetStatus => {
-  const bundleHasError = bundles.some(b => b.status === 'error');
-  const bundleHasWarning = bundles.some(b => b.status === 'warning');
-
-  const hasError = bundleHasError || totalStatus === 'error';
-  const hasWarning = bundleHasWarning || totalStatus === 'warning';
-
-  if (hasError) return 'error';
-  if (hasWarning) return 'warning';
-  return 'ok';
 };
 
 /**

@@ -1,6 +1,4 @@
-/**
- * Package.json type definition
- */
+/** Package.json type definition */
 export interface PackageJson {
   name: string;
   version: string;

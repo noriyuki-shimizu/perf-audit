@@ -1,6 +1,4 @@
-/**
- * Lighthouse options interface
- */
+/** Lighthouse options interface */
 export interface LighthouseOptions {
   url: string;
   device: 'mobile' | 'desktop';
@@ -8,9 +6,7 @@ export interface LighthouseOptions {
   outputFormat?: 'json' | 'html' | 'csv';
 }
 
-/**
- * Lighthouse configuration interface
- */
+/** Lighthouse configuration interface */
 export interface LighthouseConfig {
   extends: 'lighthouse:default';
   settings: {

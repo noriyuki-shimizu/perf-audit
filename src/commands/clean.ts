@@ -25,8 +25,6 @@ const DATABASE_PATH = '.perf-audit/performance.db';
 /** Cache directory path */
 const CACHE_DIRECTORY = '.perf-audit/cache';
 
-/** Configuration interface for clean operations */
-
 /**
  * Execute performance data cleaning command
  * @param options - Clean command options

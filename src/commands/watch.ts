@@ -6,7 +6,7 @@ import { PerformanceDatabase } from '../core/database.ts';
 import { NotificationService } from '../core/notification-service.ts';
 import type { BundleChange, PerformanceComparison, WatchOptions, WatchState } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
-import { getCurrentTimestamp } from '../utils/command-helpers.ts';
+import { applyBudgetsToAllBundles, createAuditResult } from '../utils/bundle.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
@@ -25,8 +25,6 @@ const MIN_SIZE_CHANGE_THRESHOLD = 1024;
 
 /** Minimum percentage change threshold for significance */
 const MIN_PERCENTAGE_CHANGE_THRESHOLD = 5;
-
-/** Bundle change interface */
 
 /**
  * Execute watch command to monitor bundle changes in real-time
@@ -413,44 +411,6 @@ const analyzeServerBundles = async (config: PerfAuditConfig): Promise<BundleInfo
 };
 
 /**
- * Apply budgets to all bundles (client and server)
- * @param bundles - Array of bundles
- * @param config - Application configuration
- * @returns Array of bundles with budget status applied
- */
-const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: PerfAuditConfig): BundleInfo[] => {
-  const clientBundles = bundles.filter(b => b.type === 'client');
-  const serverBundles = bundles.filter(b => b.type === 'server');
-  const bundlesWithBudgets: BundleInfo[] = [];
-
-  if (clientBundles.length > 0) {
-    const clientBundlesWithBudgets = BundleAnalyzer.applyBudgets(clientBundles, config.budgets.client.bundles);
-    bundlesWithBudgets.push(...clientBundlesWithBudgets);
-  }
-
-  if (serverBundles.length > 0) {
-    const serverBundlesWithBudgets = BundleAnalyzer.applyBudgets(serverBundles, config.budgets.server.bundles);
-    bundlesWithBudgets.push(...serverBundlesWithBudgets);
-  }
-
-  return bundlesWithBudgets;
-};
-
-/**
- * Create audit result from analyzed bundles
- * @param bundlesWithBudgets - Bundles with budget status applied
- * @param config - Application configuration
- * @returns Audit result object
- */
-const createAuditResult = (bundlesWithBudgets: BundleInfo[], config: PerfAuditConfig): AuditResult => ({
-  timestamp: getCurrentTimestamp(),
-  bundles: bundlesWithBudgets,
-  recommendations: [],
-  budgetStatus: getBudgetStatus(bundlesWithBudgets),
-  analysisType: config.analysis.target,
-});
-
-/**
  * Save build data to database
  * @param db - Performance database instance
  * @param result - Audit result
@@ -686,18 +646,4 @@ const displayChangeDetails = (change: BundleChange): void => {
   } else {
     Logger.debug(`   ${formatSize(change.previousSize)} → ${formatSize(change.currentSize)}`);
   }
-};
-
-/**
- * Get overall budget status based on bundle statuses
- * @param bundles - Array of bundles with status
- * @returns Overall budget status
- */
-const getBudgetStatus = (bundles: BundleInfo[]): 'ok' | 'warning' | 'error' => {
-  const hasError = bundles.some(b => b.status === 'error');
-  const hasWarning = bundles.some(b => b.status === 'warning');
-
-  if (hasError) return 'error';
-  if (hasWarning) return 'warning';
-  return 'ok';
 };

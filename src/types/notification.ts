@@ -1,8 +1,6 @@
 import type { AuditResult } from './config.ts';
 
-/**
- * Performance alert interface
- */
+/** Performance alert interface */
 export interface PerformanceAlert {
   type: 'regression' | 'improvement' | 'budget_exceeded';
   changes?: Array<{
@@ -15,9 +13,7 @@ export interface PerformanceAlert {
   message?: string;
 }
 
-/**
- * Notification configuration interface
- */
+/** Notification configuration interface */
 export interface NotificationConfig {
   slack?: {
     webhook?: string;
