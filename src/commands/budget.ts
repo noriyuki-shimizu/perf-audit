@@ -3,6 +3,7 @@ import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import type { BudgetJsonOutput, BudgetOptions, BudgetStatus, BundleType } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
+import { getCurrentTimestamp } from '../utils/command-helpers.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
@@ -278,7 +279,7 @@ const createBudgetAuditResult = (
   const analysisTarget = (config as { analysis: { target: BundleType; }; }).analysis.target;
 
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: getCurrentTimestamp(),
     bundles: bundlesWithBudgets,
     recommendations: [],
     budgetStatus: getBudgetStatus(bundlesWithBudgets, totalStatus),

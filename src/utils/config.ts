@@ -27,6 +27,12 @@ const DEFAULT_CONFIG: PerfAuditConfig = {
         total: { max: '800KB', warning: '600KB' },
       },
     },
+    lighthouse: {
+      performance: { min: 90, warning: 95 },
+      accessibility: { min: 90, warning: 95 },
+      bestPractices: { min: 90, warning: 95 },
+      seo: { min: 90, warning: 95 },
+    },
     metrics: {
       fcp: { max: 1500, warning: 1000 },
       lcp: { max: 2500, warning: 2000 },
@@ -76,6 +82,7 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
       server: {
         bundles: { ...defaultConfig.budgets.server.bundles, ...userConfig.budgets?.server?.bundles },
       },
+      lighthouse: { ...defaultConfig.budgets.lighthouse, ...userConfig.budgets?.lighthouse },
       metrics: { ...defaultConfig.budgets.metrics, ...userConfig.budgets?.metrics },
     },
     analysis: { ...defaultConfig.analysis, ...userConfig.analysis },

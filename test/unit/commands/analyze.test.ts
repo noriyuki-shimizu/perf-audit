@@ -202,10 +202,6 @@ describe('analyzeCommand', () => {
   });
 
   it('should handle error and exit process', async () => {
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('Process exit');
-    });
-
     const loadConfig = vi.mocked(await import('../../../src/utils/config.ts')).loadConfig;
     loadConfig.mockRejectedValueOnce(new Error('Config load error'));
 
@@ -214,10 +210,7 @@ describe('analyzeCommand', () => {
       details: false,
     };
 
-    await expect(analyzeCommand(options)).rejects.toThrow('Process exit');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
+    await expect(analyzeCommand(options)).rejects.toThrow('Config load error');
   });
 
   it('should warn when no bundles are found', async () => {

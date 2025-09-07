@@ -1,10 +1,8 @@
-import ora from 'ora';
 import path from 'path';
-import { PerformanceDatabase } from '../core/database.ts';
 import { LighthouseRunner } from '../core/lighthouse-runner.ts';
 import type { CommandLighthouseOptions } from '../types/commands.ts';
-import type { AuditResult } from '../types/config.ts';
-import { loadConfig } from '../utils/config.ts';
+import type { AuditResult, BudgetConfig, PerformanceMetrics } from '../types/config.ts';
+import { exitBasedOnStatus, getCurrentTimestamp, initializeCommand, saveBuildData } from '../utils/command-helpers.ts';
 import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
@@ -15,7 +13,7 @@ import { ConsoleReporter } from '../utils/reporter.ts';
  * @param options - The options for the Lighthouse audit
  */
 export async function lighthouseCommand(url: string, options: CommandLighthouseOptions): Promise<void> {
-  const spinner = ora('Loading configuration...').start();
+  const { config, spinner } = await initializeCommand();
 
   // Validate URL
   if (!LighthouseRunner.validateUrl(url)) {
@@ -25,7 +23,6 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
   }
 
   try {
-    const config = await loadConfig();
     spinner.text = `Running Lighthouse audit for ${options.device} device...`;
 
     const runner = new LighthouseRunner();
@@ -41,7 +38,7 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
 
     // Create audit result
     const auditResult: AuditResult = {
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentTimestamp(),
       bundles: [], // No bundle data for lighthouse-only audits
       lighthouse: result,
       recommendations: generatePerformanceRecommendations(result),
@@ -50,21 +47,7 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
     };
 
     // Save to database
-    try {
-      const db = new PerformanceDatabase();
-      const buildId = db.saveBuild({
-        timestamp: auditResult.timestamp,
-        url,
-        device: options.device,
-        bundles: [],
-        metrics: result,
-        recommendations: auditResult.recommendations,
-      });
-      db.close();
-      Logger.debug(`Lighthouse audit saved with ID: ${buildId}`);
-    } catch {
-      Logger.warn('Failed to save audit to database');
-    }
+    await saveBuildData(auditResult, { url, device: options.device, metrics: result });
 
     spinner.succeed('Lighthouse audit completed');
 
@@ -105,11 +88,7 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
     }
 
     // Set exit code based on budget status
-    if (auditResult.budgetStatus === 'error') {
-      process.exit(1);
-    } else if (auditResult.budgetStatus === 'warning') {
-      process.exit(2);
-    }
+    exitBasedOnStatus(auditResult.budgetStatus);
   } catch (error) {
     spinner.fail('Lighthouse audit failed');
     Logger.error(error instanceof Error ? error.message : 'Unknown error');
@@ -129,8 +108,8 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
  * @returns Status of the budget evaluation
  */
 function evaluatePerformanceBudgets(
-  metrics: any,
-  budgets: any,
+  metrics: PerformanceMetrics,
+  budgets: BudgetConfig,
 ): 'ok' | 'warning' | 'error' {
   const { lighthouse: lighthouseBudgets, metrics: metricBudgets } = budgets;
 
@@ -144,11 +123,14 @@ function evaluatePerformanceBudgets(
     hasWarning = true;
   }
 
-  if (lighthouseBudgets.accessibility?.min && metrics.accessibility < lighthouseBudgets.accessibility.min) {
+  if (
+    lighthouseBudgets.accessibility?.min && metrics.accessibility
+    && metrics.accessibility < lighthouseBudgets.accessibility.min
+  ) {
     hasError = true;
   }
 
-  if (lighthouseBudgets.seo?.min && metrics.seo < lighthouseBudgets.seo.min) {
+  if (lighthouseBudgets.seo?.min && metrics.seo && metrics.seo < lighthouseBudgets.seo.min) {
     hasError = true;
   }
 
@@ -187,7 +169,7 @@ function evaluatePerformanceBudgets(
  * @param metrics - Lighthouse metrics
  * @returns Array of performance improvement recommendations
  */
-function generatePerformanceRecommendations(metrics: any): string[] {
+function generatePerformanceRecommendations(metrics: PerformanceMetrics): string[] {
   const recommendations: string[] = [];
 
   if (metrics.performance < 90) {
@@ -210,11 +192,11 @@ function generatePerformanceRecommendations(metrics: any): string[] {
     recommendations.push('Reduce Time to Interactive by minimizing JavaScript execution time');
   }
 
-  if (metrics.accessibility < 95) {
+  if (metrics.accessibility && metrics.accessibility < 95) {
     recommendations.push('Improve accessibility by adding alt text, proper headings, and ARIA labels');
   }
 
-  if (metrics.seo < 90) {
+  if (metrics.seo && metrics.seo < 90) {
     recommendations.push('Improve SEO by adding meta descriptions, proper heading structure, and structured data');
   }
 

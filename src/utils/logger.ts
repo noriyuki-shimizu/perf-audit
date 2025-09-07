@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 
 // Simple console logger with colors and icons
-const formatMessage = (level: string, message: string, meta?: any): string => {
+const formatMessage = (level: string, message: string, meta?: unknown): string => {
   let formattedMessage = message;
 
   switch (level) {
@@ -33,19 +33,19 @@ const formatMessage = (level: string, message: string, meta?: any): string => {
 
 // Helper methods for common CLI patterns
 export class Logger {
-  static info(message: string, meta?: any) {
+  static info(message: string, meta?: unknown) {
     console.log(formatMessage('info', message, meta));
   }
 
-  static success(message: string, meta?: any) {
+  static success(message: string, meta?: unknown) {
     console.log(formatMessage('success', message, meta));
   }
 
-  static warn(message: string, meta?: any) {
+  static warn(message: string, meta?: unknown) {
     console.log(formatMessage('warn', message, meta));
   }
 
-  static error(message: string, meta?: any) {
+  static error(message: string, meta?: unknown) {
     console.log(formatMessage('error', message, meta));
   }
 
