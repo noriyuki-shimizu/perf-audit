@@ -68,7 +68,7 @@ export interface PerformanceSnapshot {
   lighthouse?: any;
 }
 
-/** Email notification settings */
+/** Summary of trend analysis results, including size changes, bundle count changes, alerts, and recommendations. */
 export interface TrendAnalysis {
   sizeIncrease: boolean;
   sizeIncreasePercent: number;

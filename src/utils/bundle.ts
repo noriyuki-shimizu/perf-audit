@@ -38,7 +38,6 @@ export const getBudgetStatus = (bundles: BundleInfo[], totalStatus?: BudgetStatu
   const bundleHasWarning = bundles.some(b => b.status === 'warning');
 
   if (totalStatus) {
-    // budget.ts version with totalStatus
     const hasError = bundleHasError || totalStatus === 'error';
     const hasWarning = bundleHasWarning || totalStatus === 'warning';
 
@@ -46,7 +45,6 @@ export const getBudgetStatus = (bundles: BundleInfo[], totalStatus?: BudgetStatu
     if (hasWarning) return 'warning';
     return 'ok';
   } else {
-    // analyze.ts and watch.ts version
     if (bundleHasError) return 'error';
     if (bundleHasWarning) return 'warning';
     return 'ok';
