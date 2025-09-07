@@ -1,7 +1,5 @@
-import ora from 'ora';
 import path from 'path';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
-import { PerformanceDatabase } from '../core/database.ts';
 import { PluginManager } from '../core/plugin-system.ts';
 import type {
   AfterAnalysisContext,
@@ -11,11 +9,17 @@ import type {
   AnalyzeOptions,
   BeforeReportContext,
   BundleAnalysisContext,
-  ErrorContext,
 } from '../types/commands.ts';
-import type { AuditResult, BundleInfo } from '../types/config.ts';
+import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { CIIntegration } from '../utils/ci-integration.ts';
-import { loadConfig } from '../utils/config.ts';
+import {
+  completeCommand,
+  getCurrentTimestamp,
+  handleCommandError,
+  initializeCommand,
+  initializePluginManager,
+  saveBuildData,
+} from '../utils/command-helpers.ts';
 import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
@@ -42,47 +46,37 @@ const MIN_SMALL_CHUNKS_FOR_RECOMMENDATION = 3;
  * @param options - Analysis options
  */
 export const analyzeCommand = async (options: AnalyzeOptions): Promise<void> => {
-  const spinner = ora('Loading configuration...').start();
+  const { config, spinner } = await initializeCommand();
 
   try {
-    const config = await loadConfig();
-    const pluginManager = new PluginManager(config);
+    const pluginManager = await initializePluginManager(config);
 
-    await initializePlugins(pluginManager, config);
+    await pluginManager.executeHook('beforeAnalysis', { config } as AnalysisContext);
 
     spinner.text = 'Analyzing bundles...';
 
     const bundles = await analyzeBundles(config, pluginManager);
 
     if (bundles.length === 0) {
-      handleNoBundlesFound(spinner);
+      spinner.fail('No bundles found for analysis');
+      Logger.warn('Make sure your project has been built and the output path is correct.');
       return;
     }
 
     const bundlesWithBudgets = applyBudgetsToAllBundles(bundles, config);
     const result = createAuditResult(bundlesWithBudgets, config);
 
-    await saveBuildToDatabase(result);
+    await saveBuildData(result);
     await pluginManager.executeHook('afterAnalysis', { result } as AfterAnalysisContext);
 
-    spinner.succeed('Bundle analysis completed');
+    completeCommand(spinner, 'Bundle analysis completed');
 
     await generateReports(result, options, config, pluginManager);
     await outputCIResults(result);
     await pluginManager.unloadPlugins();
   } catch (error) {
-    await handleAnalysisError(spinner, error);
+    await handleCommandError(spinner, error, 'Analysis failed', config);
   }
-};
-
-/**
- * Initialize plugin system
- * @param pluginManager - Plugin manager instance
- * @param config - Configuration object
- */
-const initializePlugins = async (pluginManager: PluginManager, config: unknown): Promise<void> => {
-  await pluginManager.loadPlugins();
-  await pluginManager.executeHook('beforeAnalysis', { config } as AnalysisContext);
 };
 
 /**
@@ -91,7 +85,7 @@ const initializePlugins = async (pluginManager: PluginManager, config: unknown):
  * @param pluginManager - Plugin manager instance
  * @returns Array of analyzed bundles
  */
-const analyzeBundles = async (config: any, pluginManager: PluginManager): Promise<BundleInfo[]> => {
+const analyzeBundles = async (config: PerfAuditConfig, pluginManager: PluginManager): Promise<BundleInfo[]> => {
   const allBundles: BundleInfo[] = [];
   const analysisTarget = config.analysis.target;
 
@@ -116,7 +110,7 @@ const analyzeBundles = async (config: any, pluginManager: PluginManager): Promis
  * @param pluginManager - Plugin manager instance
  * @returns Array of client bundles with type annotation
  */
-const analyzeClientBundles = async (config: any, pluginManager: PluginManager): Promise<BundleInfo[]> => {
+const analyzeClientBundles = async (config: PerfAuditConfig, pluginManager: PluginManager): Promise<BundleInfo[]> => {
   const clientAnalyzer = new BundleAnalyzer({
     outputPath: config.project.client.outputPath,
     gzip: config.analysis.gzip,
@@ -137,7 +131,7 @@ const analyzeClientBundles = async (config: any, pluginManager: PluginManager): 
  * @param pluginManager - Plugin manager instance
  * @returns Array of server bundles with type annotation
  */
-const analyzeServerBundles = async (config: any, pluginManager: PluginManager): Promise<BundleInfo[]> => {
+const analyzeServerBundles = async (config: PerfAuditConfig, pluginManager: PluginManager): Promise<BundleInfo[]> => {
   const serverAnalyzer = new BundleAnalyzer({
     outputPath: config.project.server.outputPath,
     gzip: config.analysis.gzip,
@@ -153,21 +147,12 @@ const analyzeServerBundles = async (config: any, pluginManager: PluginManager): 
 };
 
 /**
- * Handle case when no bundles are found
- * @param spinner - Ora spinner instance
- */
-const handleNoBundlesFound = (spinner: any): void => {
-  spinner.fail('No bundles found for analysis');
-  Logger.warn('Make sure your project has been built and the output path is correct.');
-};
-
-/**
  * Apply budgets to all bundles (client and server)
  * @param bundles - Array of bundles
  * @param config - Configuration object
  * @returns Array of bundles with budget status applied
  */
-const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: any): BundleInfo[] => {
+const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: PerfAuditConfig): BundleInfo[] => {
   const clientBundles = bundles.filter(b => b.type === 'client');
   const serverBundles = bundles.filter(b => b.type === 'server');
   const bundlesWithBudgets: BundleInfo[] = [];
@@ -191,36 +176,14 @@ const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: any): BundleInf
  * @param config - Configuration object
  * @returns Audit result object
  */
-const createAuditResult = (bundlesWithBudgets: BundleInfo[], config: any): AuditResult => {
+const createAuditResult = (bundlesWithBudgets: BundleInfo[], config: PerfAuditConfig): AuditResult => {
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: getCurrentTimestamp(),
     bundles: bundlesWithBudgets,
     recommendations: generateRecommendations(bundlesWithBudgets),
     budgetStatus: getBudgetStatus(bundlesWithBudgets),
     analysisType: config.analysis.target,
   };
-};
-
-/**
- * Save build data to database
- * @param result - Audit result
- */
-const saveBuildToDatabase = async (result: AuditResult): Promise<void> => {
-  try {
-    const ciContext = CIIntegration.detectCIEnvironment();
-    const db = new PerformanceDatabase();
-    const buildId = db.saveBuild({
-      timestamp: result.timestamp,
-      branch: ciContext.branch,
-      commitHash: ciContext.commitHash,
-      bundles: result.bundles,
-      recommendations: result.recommendations,
-    });
-    db.close();
-    Logger.debug(`Build saved with ID: ${buildId}`);
-  } catch {
-    Logger.warn('Failed to save build to database');
-  }
 };
 
 /**
@@ -233,7 +196,7 @@ const saveBuildToDatabase = async (result: AuditResult): Promise<void> => {
 const generateReports = async (
   result: AuditResult,
   options: AnalyzeOptions,
-  config: any,
+  config: PerfAuditConfig,
   pluginManager: PluginManager,
 ): Promise<void> => {
   await pluginManager.executeHook('beforeReport', {
@@ -265,7 +228,7 @@ const generateReports = async (
  */
 const generateJsonReport = async (
   result: AuditResult,
-  config: any,
+  config: PerfAuditConfig,
   pluginManager: PluginManager,
 ): Promise<void> => {
   const outputPath = path.join(config.reports.outputDir, `bundle-analysis-${Date.now()}.json`);
@@ -283,7 +246,7 @@ const generateJsonReport = async (
  */
 const generateHtmlReport = async (
   result: AuditResult,
-  config: any,
+  config: PerfAuditConfig,
   pluginManager: PluginManager,
 ): Promise<void> => {
   const outputPath = path.join(config.reports.outputDir, `bundle-analysis-${Date.now()}.html`);
@@ -303,9 +266,9 @@ const generateHtmlReport = async (
  */
 const generateConsoleReport = async (
   result: AuditResult,
-  totalSizes: any,
+  totalSizes: { size: number; gzipSize?: number; },
   options: AnalyzeOptions,
-  config: any,
+  config: PerfAuditConfig,
   pluginManager: PluginManager,
 ): Promise<void> => {
   const reporter = new ConsoleReporter(config);
@@ -323,31 +286,6 @@ const generateConsoleReport = async (
 const outputCIResults = async (result: AuditResult): Promise<void> => {
   const ciContext = CIIntegration.detectCIEnvironment();
   CIIntegration.outputCIAnnotations(result, ciContext);
-};
-
-/**
- * Handle analysis errors
- * @param spinner - Ora spinner instance
- * @param error - Error object
- */
-const handleAnalysisError = async (spinner: any, error: unknown): Promise<void> => {
-  spinner.fail('Analysis failed');
-  Logger.error(error instanceof Error ? error.message : 'Unknown error');
-
-  try {
-    const config = await loadConfig();
-    const pluginManager = new PluginManager(config);
-    await pluginManager.loadPlugins();
-    await pluginManager.executeHook('onError', {
-      error: error as Error,
-      context: 'analysis',
-    } as ErrorContext);
-    await pluginManager.unloadPlugins();
-  } catch {
-    // Ignore plugin errors during error handling
-  }
-
-  process.exit(1);
 };
 
 /**

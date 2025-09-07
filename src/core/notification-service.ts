@@ -1,5 +1,6 @@
 import type { NotificationConfig, PerformanceAlert } from '../types/notification.ts';
 import { formatSize } from '../utils/size.ts';
+import { Logger } from '../utils/logger.ts';
 
 export class NotificationService {
   private config: NotificationConfig;
@@ -87,8 +88,8 @@ export class NotificationService {
 
   private async sendEmailNotification(alert: PerformanceAlert): Promise<void> {
     // Email functionality would require additional dependencies like nodemailer
-    // For now, we'll just log that email would be sent
-    console.log('Email notification would be sent:', this.formatEmailContent(alert));
+    // For now, we'll use the logger for consistency
+    Logger.info('Email notification would be sent:', this.formatEmailContent(alert));
   }
 
   private formatSlackMessage(alert: PerformanceAlert) {

@@ -1,6 +1,4 @@
-/**
- * Database record interfaces
- */
+/** ビルドレコード */
 export interface BuildRecord {
   id: number;
   timestamp: string;
@@ -10,6 +8,7 @@ export interface BuildRecord {
   device?: string;
 }
 
+/** バンドルレコード */
 export interface BundleRecord {
   id: number;
   buildId: number;
@@ -18,6 +17,7 @@ export interface BundleRecord {
   gzipSize?: number;
 }
 
+/** メトリクスレコード */
 export interface MetricRecord {
   id: number;
   buildId: number;
@@ -25,6 +25,7 @@ export interface MetricRecord {
   value: number;
 }
 
+/** 推奨レコード */
 export interface RecommendationRecord {
   id: number;
   buildId: number;
@@ -33,6 +34,7 @@ export interface RecommendationRecord {
   impact: string;
 }
 
+/** トレンドデータ */
 export interface TrendData {
   date: string;
   totalSize: number;

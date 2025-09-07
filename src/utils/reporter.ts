@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
+import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { formatDelta, formatSize } from './size.ts';
 
 export class ConsoleReporter {

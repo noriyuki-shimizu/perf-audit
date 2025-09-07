@@ -1,5 +1,5 @@
 import { PerformanceDatabase } from '../core/database.ts';
-import { AuditResult, CIContext } from '../types/config.ts';
+import type { AuditResult, CIContext } from '../types/config.ts';
 import { formatSize } from './size.ts';
 
 export class CIIntegration {

@@ -6,6 +6,7 @@ import { PerformanceDatabase } from '../core/database.ts';
 import { NotificationService } from '../core/notification-service.ts';
 import type { BundleChange, PerformanceComparison, WatchOptions, WatchState } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
+import { getCurrentTimestamp } from '../utils/command-helpers.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
@@ -442,7 +443,7 @@ const applyBudgetsToAllBundles = (bundles: BundleInfo[], config: PerfAuditConfig
  * @returns Audit result object
  */
 const createAuditResult = (bundlesWithBudgets: BundleInfo[], config: PerfAuditConfig): AuditResult => ({
-  timestamp: new Date().toISOString(),
+  timestamp: getCurrentTimestamp(),
   bundles: bundlesWithBudgets,
   recommendations: [],
   budgetStatus: getBudgetStatus(bundlesWithBudgets),
