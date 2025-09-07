@@ -119,11 +119,9 @@ export const exitBasedOnStatus = (status: 'ok' | 'warning' | 'error'): void => {
   switch (status) {
     case 'error':
       process.exit(1);
-      // eslint-disable-next-line no-unreachable
       break;
     case 'warning':
       process.exit(2);
-      // eslint-disable-next-line no-unreachable
       break;
     default:
       // 正常終了: 何もしない
