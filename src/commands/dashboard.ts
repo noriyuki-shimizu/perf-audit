@@ -226,7 +226,7 @@ const handleGetTotalTrends = (db: PerformanceDatabase) => (req: express.Request,
  * @returns Validated query parameters
  */
 const validateTrendQuery = (query: express.Request['query']): TrendQuery => {
-  if (typeof query.days !== 'string') {
+  if (typeof query.days !== 'string' && query.days !== undefined) {
     throw new Error('Invalid query parameters ["days"]');
   }
   if (
@@ -237,9 +237,9 @@ const validateTrendQuery = (query: express.Request['query']): TrendQuery => {
   }
 
   return {
-    days: parseInt(query.days) || 30,
-    startDate: query.startDate ?? '',
-    endDate: query.endDate ?? '',
+    days: parseInt(query.days ?? '30', 10),
+    startDate: query.startDate !== undefined ? `${query.startDate} 00:00:00` : '',
+    endDate: query.endDate !== undefined ? `${query.endDate} 23:59:59` : '',
   };
 };
 
