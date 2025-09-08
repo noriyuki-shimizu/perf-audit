@@ -138,13 +138,11 @@ describe('historyCommand', () => {
 
   it('should warn when no historical data is found', async () => {
     const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() =>
-      ({
-        getTrendData: vi.fn().mockReturnValue([]),
-        getRecentBuilds: vi.fn().mockReturnValue([]),
-        close: vi.fn(),
-      }) as any
-    );
+    PerformanceDatabase.mockImplementationOnce(() => ({
+      getTrendData: vi.fn().mockReturnValue([]),
+      getRecentBuilds: vi.fn().mockReturnValue([]),
+      close: vi.fn(),
+    }));
 
     const options: HistoryOptions = {
       days: 30,
@@ -240,24 +238,22 @@ describe('historyCommand', () => {
 
   it('should handle missing optional data gracefully', async () => {
     const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() =>
-      ({
-        getTrendData: vi.fn().mockReturnValue([
-          {
-            date: '2023-01-01',
-            totalSize: 100000,
-            // Missing optional fields
-          },
-        ]),
-        getRecentBuilds: vi.fn().mockReturnValue([
-          {
-            timestamp: '2023-01-01T12:00:00.000Z',
-            // Missing branch and device
-          },
-        ]),
-        close: vi.fn(),
-      }) as any
-    );
+    PerformanceDatabase.mockImplementationOnce(() => ({
+      getTrendData: vi.fn().mockReturnValue([
+        {
+          date: '2023-01-01',
+          totalSize: 100000,
+          // Missing optional fields
+        },
+      ]),
+      getRecentBuilds: vi.fn().mockReturnValue([
+        {
+          timestamp: '2023-01-01T12:00:00.000Z',
+          // Missing branch and device
+        },
+      ]),
+      close: vi.fn(),
+    }));
 
     const options: HistoryOptions = {
       days: 30,
@@ -273,19 +269,17 @@ describe('historyCommand', () => {
 
   it('should not display Core Web Vitals section if no FCP data', async () => {
     const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() =>
-      ({
-        getTrendData: vi.fn().mockReturnValue([
-          {
-            date: '2023-01-01',
-            totalSize: 100000,
-            // No Core Web Vitals data
-          },
-        ]),
-        getRecentBuilds: vi.fn().mockReturnValue([]),
-        close: vi.fn(),
-      }) as any
-    );
+    PerformanceDatabase.mockImplementationOnce(() => ({
+      getTrendData: vi.fn().mockReturnValue([
+        {
+          date: '2023-01-01',
+          totalSize: 100000,
+          // No Core Web Vitals data
+        },
+      ]),
+      getRecentBuilds: vi.fn().mockReturnValue([]),
+      close: vi.fn(),
+    }));
 
     const options: HistoryOptions = {
       days: 30,
@@ -301,19 +295,17 @@ describe('historyCommand', () => {
 
   it('should limit recent builds display to 5', async () => {
     const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() =>
-      ({
-        getTrendData: vi.fn().mockReturnValue([
-          { date: '2023-01-01', totalSize: 100000 },
-        ]),
-        getRecentBuilds: vi.fn().mockReturnValue(
-          Array.from({ length: 10 }, (_, i) => ({
-            timestamp: `2023-01-${String(i + 1).padStart(2, '0')}T12:00:00.000Z`,
-          })),
-        ),
-        close: vi.fn(),
-      }) as any
-    );
+    PerformanceDatabase.mockImplementationOnce(() => ({
+      getTrendData: vi.fn().mockReturnValue([
+        { date: '2023-01-01', totalSize: 100000 },
+      ]),
+      getRecentBuilds: vi.fn().mockReturnValue(
+        Array.from({ length: 10 }, (_, i) => ({
+          timestamp: `2023-01-${String(i + 1).padStart(2, '0')}T12:00:00.000Z`,
+        })),
+      ),
+      close: vi.fn(),
+    }));
 
     const options: HistoryOptions = {
       days: 30,

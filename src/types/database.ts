@@ -8,6 +8,12 @@ export interface BuildRecord {
   device?: string;
 }
 
+/** ビルド、バンドル、メトリクスの結合レコード */
+export interface BuildBundleMetricRecord extends BuildRecord {
+  bundles: string;
+  metrics: string;
+}
+
 /** バンドルレコード */
 export interface BundleRecord {
   id: number;

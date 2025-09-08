@@ -364,7 +364,7 @@ describe('CIIntegration', () => {
         close: vi.fn(),
       };
 
-      mockDatabase.mockImplementation(() => mockDb as any);
+      mockDatabase.mockImplementation(() => mockDb as unknown as PerformanceDatabase);
 
       const summary = CIIntegration.generateGitHubActionsSummary(mockAuditResult);
 
@@ -388,7 +388,7 @@ describe('CIIntegration', () => {
         close: vi.fn(),
       };
 
-      mockDatabase.mockImplementation(() => mockDb as any);
+      mockDatabase.mockImplementation(() => mockDb as unknown as PerformanceDatabase);
 
       const summary = CIIntegration.generateGitHubActionsSummary(mockAuditResult);
 

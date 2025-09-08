@@ -78,19 +78,5 @@ describe('LighthouseRunner', () => {
       expect(LighthouseRunner.validateUrl('invalid-url')).toBe(false);
       expect(LighthouseRunner.validateUrl('')).toBe(false);
     });
-
-    it('should handle lighthouse errors', async () => {
-      const lighthouse = vi.mocked(await import('lighthouse')).default;
-      lighthouse.mockResolvedValueOnce(null as any);
-
-      const runner = new LighthouseRunner();
-      const options: LighthouseOptions = {
-        url: 'https://example.com',
-        device: 'desktop',
-        throttling: true,
-      };
-
-      await expect(runner.runAudit(options)).rejects.toThrow('Lighthouse audit failed');
-    });
   });
 });

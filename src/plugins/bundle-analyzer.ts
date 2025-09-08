@@ -51,7 +51,7 @@ export const bundleAnalyzerPlugin: Plugin = {
     beforeReport: async (context, data) => {
       if (!data) return;
 
-      const insights = context.store.get('insights') || [];
+      const insights = context.store.get('insights') as string[] || [];
       if (insights.length > 0) {
         // Add insights to recommendations
         data.result.recommendations = [

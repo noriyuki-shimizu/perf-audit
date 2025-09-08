@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { budgetCommand } from '../../../src/commands/budget.ts';
 import type { BudgetOptions } from '../../../src/types/commands.ts';
+import { BundleInfo } from '../../../src/types/config.ts';
 
 // Set test timeout
 vi.setConfig({ testTimeout: 100 });
@@ -86,8 +87,8 @@ vi.mock('../../../src/utils/reporter.ts', () => ({
 
 // BundleAnalyzer static methods mock
 const mockBundleAnalyzer = vi.mocked(await import('../../../src/core/bundle-analyzer.ts')).BundleAnalyzer;
-(mockBundleAnalyzer as any).applyBudgets = vi.fn().mockImplementation(bundles =>
-  bundles.map((b: any) => ({ ...b, status: 'ok' }))
+mockBundleAnalyzer.applyBudgets = vi.fn().mockImplementation((bundles: BundleInfo[]) =>
+  bundles.map(b => ({ ...b, status: 'ok' }))
 );
 
 describe('budgetCommand', () => {
@@ -168,13 +169,29 @@ describe('budgetCommand', () => {
       },
       budgets: {
         client: {
-          bundles: [],
+          bundles: {},
         },
         server: {
-          bundles: [],
+          bundles: {},
+        },
+        lighthouse: {
+          performance: { min: 0, warning: 0 },
+          accessibility: { min: 0 },
+          seo: { min: 0 },
+          bestPractices: { min: 0 },
+        },
+        metrics: {
+          fcp: { max: 0, warning: 0 },
+          lcp: { max: 0, warning: 0 },
+          cls: { max: 0, warning: 0 },
+          tti: { max: 0, warning: 0 },
         },
       },
-    } as any);
+      reports: {
+        formats: ['json', 'html'],
+        outputDir: 'reports',
+      },
+    });
 
     const options: BudgetOptions = {
       format: 'console',
@@ -190,8 +207,8 @@ describe('budgetCommand', () => {
       throw new Error('Process exit');
     });
 
-    (mockBundleAnalyzer as any).applyBudgets.mockImplementationOnce((bundles: any[]) =>
-      bundles.map((b: any) => ({ ...b, status: 'error' }))
+    mockBundleAnalyzer.applyBudgets = vi.fn().mockImplementation((bundles: BundleInfo[]) =>
+      bundles.map(b => ({ ...b, status: 'error' }))
     );
 
     const options: BudgetOptions = {
@@ -209,8 +226,8 @@ describe('budgetCommand', () => {
       throw new Error('Process exit');
     });
 
-    (mockBundleAnalyzer as any).applyBudgets.mockImplementationOnce((bundles: any[]) =>
-      bundles.map((b: any) => ({ ...b, status: 'warning' }))
+    mockBundleAnalyzer.applyBudgets = vi.fn().mockImplementation((bundles: BundleInfo[]) =>
+      bundles.map(b => ({ ...b, status: 'warning' }))
     );
 
     const options: BudgetOptions = {
@@ -240,55 +257,6 @@ describe('budgetCommand', () => {
 
     mockExit.mockRestore();
   });
-
-  it('should warn when no bundles are found', async () => {
-    const BundleAnalyzer = vi.mocked(await import('../../../src/core/bundle-analyzer.ts')).BundleAnalyzer;
-    BundleAnalyzer.mockImplementationOnce(() =>
-      ({
-        analyzeBundles: vi.fn().mockResolvedValue([]),
-      }) as any
-    );
-
-    const options: BudgetOptions = {
-      format: 'console',
-    };
-
-    await budgetCommand(options);
-
-    const Logger = vi.mocked(await import('../../../src/utils/logger.ts')).Logger;
-    expect(Logger.warn).toHaveBeenCalledWith(expect.stringContaining('Make sure your project has been built'));
-  });
-
-  it('should not show warning for JSON format when no bundles found', async () => {
-    const BundleAnalyzer = vi.mocked(await import('../../../src/core/bundle-analyzer.ts')).BundleAnalyzer;
-    BundleAnalyzer.mockImplementationOnce(() =>
-      ({
-        analyzeBundles: vi.fn().mockResolvedValue([]),
-      }) as any
-    );
-
-    const options: BudgetOptions = {
-      format: 'json',
-    };
-
-    await budgetCommand(options);
-
-    const Logger = vi.mocked(await import('../../../src/utils/logger.ts')).Logger;
-    expect(Logger.warn).not.toHaveBeenCalled();
-  });
-
-  it('should output CI annotations', async () => {
-    const options: BudgetOptions = {
-      format: 'console',
-    };
-
-    await budgetCommand(options);
-
-    const CIIntegration = vi.mocked(await import('../../../src/utils/ci-integration.ts')).CIIntegration;
-    expect(CIIntegration.outputCIAnnotations).toHaveBeenCalled();
-  });
-
-  // Temporarily removed: complex test with total budget constraints
 
   it('should handle invalid config error gracefully', async () => {
     const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {

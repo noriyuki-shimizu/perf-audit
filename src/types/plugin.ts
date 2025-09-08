@@ -1,4 +1,4 @@
-import type { AuditResult, BundleInfo, PerformanceMetrics } from './config.ts';
+import type { AuditResult, BundleInfo, PerfAuditConfig, PerformanceMetrics } from './config.ts';
 
 /** Plugin lifecycle hooks */
 export type PluginHook =
@@ -15,28 +15,28 @@ export type PluginHook =
 
 /** Plugin context passed to each hook */
 export interface PluginContext {
-  config: any;
+  config: PerfAuditConfig;
   logger: {
     info: (message: string) => void;
     warn: (message: string) => void;
     error: (message: string) => void;
   };
-  emit: (event: string, ...args: any[]) => void;
-  store: Map<string, any>; // Plugin-specific data store
+  emit: (event: string, ...args: unknown[]) => void;
+  store: Map<string, string | string[] | TrendAnalysis | CISummary>; // Plugin-specific data store
 }
 
 /** Data passed to different hooks */
 export interface HookData {
-  beforeAnalysis?: { config: any; };
+  beforeAnalysis?: { config: PerfAuditConfig; };
   afterAnalysis?: { result: AuditResult; };
   beforeBundleAnalysis?: { outputPath: string; };
   afterBundleAnalysis?: { bundles: BundleInfo[]; };
-  beforeLighthouse?: { url: string; options: any; };
+  beforeLighthouse?: { url: string; options: unknown; };
   afterLighthouse?: { metrics: PerformanceMetrics; };
   beforeReport?: { result: AuditResult; format: string; };
   afterReport?: { result: AuditResult; outputPath: string; };
   onError?: { error: Error; context: string; };
-  onNotification?: { type: string; data: any; };
+  onNotification?: { type: string; data: unknown; };
 }
 
 /** Plugin interface */
@@ -55,7 +55,6 @@ export interface Plugin {
 export interface PluginConfig {
   name: string;
   enabled: boolean;
-  options?: Record<string, any>;
 }
 
 /** Performance tracking related types */
@@ -65,7 +64,7 @@ export interface PerformanceSnapshot {
   totalGzipSize: number;
   bundleCount: number;
   budgetStatus: string;
-  lighthouse?: any;
+  lighthouse?: PerformanceMetrics;
 }
 
 /** Summary of trend analysis results, including size changes, bundle count changes, alerts, and recommendations. */

@@ -5,7 +5,6 @@ import type {
   AfterAnalysisContext,
   AfterBundleAnalysisContext,
   AfterReportContext,
-  AnalysisContext,
   AnalyzeOptions,
   BeforeReportContext,
   BundleAnalysisContext,
@@ -49,7 +48,7 @@ export const analyzeCommand = async (options: AnalyzeOptions): Promise<void> => 
   try {
     const pluginManager = await initializePluginManager(config);
 
-    await pluginManager.executeHook('beforeAnalysis', { config } as AnalysisContext);
+    await pluginManager.executeHook('beforeAnalysis', { config });
 
     spinner.text = 'Analyzing bundles...';
 

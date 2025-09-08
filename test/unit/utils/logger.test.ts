@@ -82,7 +82,7 @@ describe('Logger', () => {
       { method: 'warn', meta: { warning: true } },
       { method: 'error', meta: { code: 404 } },
     ])('should log $method message with meta data', ({ method, meta }) => {
-      (Logger as any)[method]('Test message', meta);
+      Logger[method]('Test message', meta);
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[DIM]{"'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining(JSON.stringify(meta)));
@@ -177,12 +177,14 @@ describe('Logger', () => {
       expect(consoleSpy).toHaveBeenCalledWith('• Bundle Count: [WHITE]5[/WHITE]');
     });
 
-    it.each([
-      { status: 'success', expectedIcon: '✅', expectedColor: 'GREEN' },
-      { status: 'warning', expectedIcon: '⚠️', expectedColor: 'YELLOW' },
-      { status: 'error', expectedIcon: '❌', expectedColor: 'RED' },
-    ])('should display result with $status status', ({ status, expectedIcon, expectedColor }) => {
-      const items = [{ label: 'Test', value: 'Value', status: status as any }];
+    it.each(
+      [
+        { status: 'success', expectedIcon: '✅', expectedColor: 'GREEN' },
+        { status: 'warning', expectedIcon: '⚠️', expectedColor: 'YELLOW' },
+        { status: 'error', expectedIcon: '❌', expectedColor: 'RED' },
+      ] as const,
+    )('should display result with $status status', ({ status, expectedIcon, expectedColor }) => {
+      const items = [{ label: 'Test', value: 'Value', status }];
 
       Logger.result('Results', items);
 

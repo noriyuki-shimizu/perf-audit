@@ -1,4 +1,5 @@
 import * as chromeLauncher from 'chrome-launcher';
+import type { Result } from 'lighthouse';
 import lighthouse from 'lighthouse';
 import type { PerformanceMetrics } from '../types/config.ts';
 import type { LighthouseConfig, LighthouseOptions } from '../types/lighthouse.ts';
@@ -48,7 +49,7 @@ export class LighthouseRunner {
     };
   }
 
-  async runAudit(options: LighthouseOptions): Promise<PerformanceMetrics & { rawResult?: any; }> {
+  async runAudit(options: LighthouseOptions): Promise<PerformanceMetrics & { rawResult?: Result; }> {
     const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });
 
     try {
@@ -85,20 +86,20 @@ export class LighthouseRunner {
     }
   }
 
-  private extractMetrics(lhr: any): PerformanceMetrics {
+  private extractMetrics(lhr: Result): PerformanceMetrics {
     const categories = lhr.categories;
     const audits = lhr.audits;
 
     return {
-      performance: Math.round(categories.performance?.score * 100) || 0,
-      accessibility: Math.round(categories.accessibility?.score * 100) || 0,
-      bestPractices: Math.round(categories['best-practices']?.score * 100) || 0,
-      seo: Math.round(categories.seo?.score * 100) || 0,
+      performance: Math.round((categories.performance?.score ?? 0) * 100),
+      accessibility: Math.round((categories.accessibility?.score ?? 0) * 100),
+      bestPractices: Math.round((categories['best-practices']?.score ?? 0) * 100),
+      seo: Math.round((categories.seo?.score ?? 0) * 100),
       metrics: {
-        fcp: Math.round(audits['first-contentful-paint']?.numericValue) || 0,
-        lcp: Math.round(audits['largest-contentful-paint']?.numericValue) || 0,
+        fcp: Math.round(audits['first-contentful-paint']?.numericValue || 0),
+        lcp: Math.round(audits['largest-contentful-paint']?.numericValue || 0),
         cls: Math.round((audits['cumulative-layout-shift']?.numericValue || 0) * 1000) / 1000,
-        tti: Math.round(audits['interactive']?.numericValue) || 0,
+        tti: Math.round(audits['interactive']?.numericValue || 0) || 0,
       },
     };
   }
