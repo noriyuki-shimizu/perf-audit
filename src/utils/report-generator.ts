@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { AuditResult } from '../types/config.ts';
+import type { AuditResult, PerformanceMetrics } from '../types/config.ts';
 import { formatSize } from './size.ts';
 
 export class ReportGenerator {
@@ -127,7 +127,7 @@ export class ReportGenerator {
 `;
   }
 
-  private static buildLighthouseSection(lighthouse: any): string {
+  private static buildLighthouseSection(lighthouse: PerformanceMetrics): string {
     return `
         <section class="section">
             <h2>📊 Lighthouse Scores</h2>

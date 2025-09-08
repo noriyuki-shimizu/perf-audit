@@ -117,20 +117,20 @@ function evaluatePerformanceBudgets(
   let hasWarning = false;
 
   // Check Lighthouse category scores
-  if (lighthouseBudgets.performance.min && metrics.performance < lighthouseBudgets.performance.min) {
+  if (lighthouseBudgets?.performance.min && metrics.performance < lighthouseBudgets.performance.min) {
     hasError = true;
-  } else if (lighthouseBudgets.performance.warning && metrics.performance < lighthouseBudgets.performance.warning) {
+  } else if (lighthouseBudgets?.performance.warning && metrics.performance < lighthouseBudgets.performance.warning) {
     hasWarning = true;
   }
 
   if (
-    lighthouseBudgets.accessibility?.min && metrics.accessibility
+    lighthouseBudgets?.accessibility?.min && metrics.accessibility
     && metrics.accessibility < lighthouseBudgets.accessibility.min
   ) {
     hasError = true;
   }
 
-  if (lighthouseBudgets.seo?.min && metrics.seo && metrics.seo < lighthouseBudgets.seo.min) {
+  if (lighthouseBudgets?.seo?.min && metrics.seo && metrics.seo < lighthouseBudgets.seo.min) {
     hasError = true;
   }
 

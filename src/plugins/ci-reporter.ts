@@ -1,3 +1,4 @@
+import { AuditResult } from '../types/config.ts';
 import type { CISummary, Plugin } from '../types/plugin.ts';
 import { formatSize } from '../utils/size.ts';
 
@@ -48,13 +49,13 @@ export const ciReporterPlugin: Plugin = {
   },
 };
 
-function generateCISummary(result: any): CISummary {
-  const totalSize = result.bundles.reduce((sum: number, b: any) => sum + b.size, 0);
-  const totalGzipSize = result.bundles.reduce((sum: number, b: any) => sum + (b.gzipSize || 0), 0);
+function generateCISummary(result: AuditResult): CISummary {
+  const totalSize = result.bundles.reduce((sum, b) => sum + b.size, 0);
+  const totalGzipSize = result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
 
   const violations = result.bundles
-    .filter((b: any) => b.status !== 'ok')
-    .map((b: any) => ({
+    .filter(b => b.status !== 'ok')
+    .map(b => ({
       name: b.name,
       size: formatSize(b.size),
       status: b.status,
@@ -63,7 +64,7 @@ function generateCISummary(result: any): CISummary {
   const improvements: Array<{ name: string; description: string; }> = [];
 
   // Generate improvement suggestions based on bundle analysis
-  const largeBundles = result.bundles.filter((b: any) => b.size > 150 * 1024);
+  const largeBundles = result.bundles.filter(b => b.size > 150 * 1024);
   if (largeBundles.length > 0) {
     improvements.push({
       name: 'Code Splitting',
@@ -71,7 +72,7 @@ function generateCISummary(result: any): CISummary {
     });
   }
 
-  const manySmallBundles = result.bundles.filter((b: any) => b.size < 10 * 1024);
+  const manySmallBundles = result.bundles.filter(b => b.size < 10 * 1024);
   if (manySmallBundles.length > 5) {
     improvements.push({
       name: 'Bundle Consolidation',

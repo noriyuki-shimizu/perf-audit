@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { performanceTrackerPlugin } from '../../../src/plugins/performance-tracker.ts';
+import { PluginContext } from '../../../src/types/plugin.ts';
 
 // Set test timeout
 vi.setConfig({ testTimeout: 100 });
@@ -14,19 +15,59 @@ vi.mock('../../../src/utils/size.ts', () => ({
 const mockFs = vi.mocked(fs);
 
 describe('performanceTrackerPlugin', () => {
-  let mockContext: any;
+  let mockContext: PluginContext;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockContext = {
+      config: {
+        project: { client: { outputPath: '' }, server: { outputPath: '' } },
+        budgets: {
+          client: {
+            bundles: {
+              main: { max: '0KB', warning: '0KB' },
+              vendor: { max: '0KB', warning: '0KB' },
+              total: { max: '0KB', warning: '0KB' },
+            },
+          },
+          server: {
+            bundles: {
+              main: { max: '0KB', warning: '0KB' },
+              vendor: { max: '0KB', warning: '0KB' },
+              total: { max: '0KB', warning: '0KB' },
+            },
+          },
+          // メトリクス設定（クライアントサイドのみ）
+          metrics: {
+            fcp: { max: 0, warning: 0 },
+            lcp: { max: 0, warning: 0 },
+            cls: { max: 0, warning: 0 },
+            tti: { max: 0, warning: 0 },
+          },
+        },
+        analysis: {
+          // 解析対象の選択: 'client', 'server', 'both'
+          target: 'both',
+          gzip: true,
+          ignorePaths: [],
+        },
+        reports: {
+          formats: [],
+          outputDir: '',
+        },
+      },
       store: new Map(),
+      emit: vi.fn(),
       logger: {
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn(),
       },
     };
-
+    // Mock fs functions
+    mockFs.existsSync = vi.fn();
+    mockFs.mkdirSync = vi.fn();
+    mockFs.writeFileSync = vi.fn();
     mockFs.existsSync.mockReturnValue(true);
     mockFs.mkdirSync.mockImplementation(() => {});
     mockFs.writeFileSync.mockImplementation(() => {});

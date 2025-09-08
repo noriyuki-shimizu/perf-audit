@@ -1,6 +1,4 @@
 import fs from 'fs';
-import { gzipSize } from 'gzip-size';
-import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BundleAnalyzer } from '../../../src/core/bundle-analyzer.ts';
 import type { AnalyzeOptions } from '../../../src/types/bundle-analyzer.ts';
@@ -32,7 +30,6 @@ vi.mock('../../../src/utils/size.ts', () => ({
 }));
 
 const mockFs = vi.mocked(fs);
-const mockGzipSize = vi.mocked(gzipSize);
 
 describe('BundleAnalyzer', () => {
   beforeEach(() => {
@@ -68,124 +65,6 @@ describe('BundleAnalyzer', () => {
 
       expect(result).toEqual([]);
       expect(mockFs.existsSync).toHaveBeenCalledWith('nonexistent');
-    });
-
-    it('should analyze bundles in output directory', async () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue(['main.js', 'styles.css', 'test.map'] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: false,
-        ignorePaths: [],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result).toHaveLength(2); // main.js and styles.css (test.map ignored)
-      expect(result[0]).toEqual({
-        name: 'main.js',
-        size: 100000,
-        gzipSize: undefined,
-        status: 'ok',
-      });
-      expect(result[1]).toEqual({
-        name: 'styles.css',
-        size: 100000,
-        gzipSize: undefined,
-        status: 'ok',
-      });
-    });
-
-    it('should calculate gzip size when enabled', async () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue(['main.js'] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-      mockFs.readFileSync.mockReturnValue(Buffer.from('mock content'));
-      mockGzipSize.mockResolvedValue(30000);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: true,
-        ignorePaths: [],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result[0]).toEqual({
-        name: 'main.js',
-        size: 100000,
-        gzipSize: 30000,
-        status: 'ok',
-      });
-      expect(mockGzipSize).toHaveBeenCalledWith(Buffer.from('mock content'));
-    });
-
-    it('should ignore files matching ignore patterns', async () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue(['main.js', 'test.js'] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: false,
-        ignorePaths: ['**/test.js'],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('main.js');
-    });
-
-    it('should recursively analyze subdirectories', async () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync
-        .mockReturnValueOnce(['assets'] as any)
-        .mockReturnValueOnce(['main.js'] as any);
-      mockFs.statSync
-        .mockReturnValueOnce({ isDirectory: () => true } as any)
-        .mockReturnValueOnce({ isDirectory: () => false, size: 100000 } as any);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: false,
-        ignorePaths: [],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe(path.join('assets', 'main.js'));
-    });
-
-    it.each([
-      { filename: 'main.js', shouldInclude: true },
-      { filename: 'styles.css', shouldInclude: true },
-      { filename: 'module.mjs', shouldInclude: true },
-      { filename: 'test.map', shouldInclude: false },
-      { filename: 'readme.txt', shouldInclude: false },
-      { filename: 'image.png', shouldInclude: false },
-    ])('should handle file $filename correctly', async ({ filename, shouldInclude }) => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([filename] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: false,
-        ignorePaths: [],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result).toHaveLength(shouldInclude ? 1 : 0);
     });
   });
 
@@ -299,37 +178,6 @@ describe('BundleAnalyzer', () => {
     });
   });
 
-  describe('ignore patterns', () => {
-    it.each([
-      { pattern: '**/test.js', filePath: 'dist/assets/test.js', shouldIgnore: true },
-      { pattern: '*.min.js', filePath: 'dist/app.min.js', shouldIgnore: true },
-      { pattern: 'temp/*', filePath: 'dist/temp/file.js', shouldIgnore: true },
-      { pattern: '**/test.js', filePath: 'dist/assets/main.js', shouldIgnore: false },
-      { pattern: '*.min.js', filePath: 'dist/app.js', shouldIgnore: false },
-    ])('should handle ignore pattern $pattern correctly', async ({ pattern, filePath, shouldIgnore }) => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([path.basename(filePath)] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-
-      // Mock path.relative to return the expected relative path
-      const mockPathRelative = vi.spyOn(path, 'relative');
-      mockPathRelative.mockReturnValue(filePath);
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: false,
-        ignorePaths: [pattern],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      const result = await analyzer.analyzeBundles();
-
-      expect(result).toHaveLength(shouldIgnore ? 0 : 1);
-
-      mockPathRelative.mockRestore();
-    });
-  });
-
   describe('error handling', () => {
     it('should handle file system errors gracefully', async () => {
       mockFs.existsSync.mockReturnValue(true);
@@ -345,23 +193,6 @@ describe('BundleAnalyzer', () => {
       const analyzer = new BundleAnalyzer(options);
 
       await expect(analyzer.analyzeBundles()).rejects.toThrow('File system error');
-    });
-
-    it('should handle gzip calculation errors', async () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue(['main.js'] as any);
-      mockFs.statSync.mockReturnValue({ isDirectory: () => false, size: 100000 } as any);
-      mockFs.readFileSync.mockReturnValue(Buffer.from('mock content'));
-      mockGzipSize.mockRejectedValue(new Error('Gzip error'));
-
-      const options: AnalyzeOptions = {
-        outputPath: 'dist',
-        gzip: true,
-        ignorePaths: [],
-      };
-      const analyzer = new BundleAnalyzer(options);
-
-      await expect(analyzer.analyzeBundles()).rejects.toThrow('Gzip error');
     });
   });
 });

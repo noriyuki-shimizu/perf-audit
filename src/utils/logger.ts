@@ -49,7 +49,7 @@ export class Logger {
     console.log(formatMessage('error', message, meta));
   }
 
-  static debug(message: string, meta?: any) {
+  static debug(message: string, meta?: unknown) {
     console.log(formatMessage('debug', message, meta));
   }
 
@@ -63,11 +63,11 @@ export class Logger {
     console.log(chalk.bold(`\n📋 ${message}`));
   }
 
-  static table(data: any[]) {
+  static table(data: unknown[]) {
     console.table(data);
   }
 
-  static json(data: any) {
+  static json(data: unknown) {
     console.log(JSON.stringify(data, null, 2));
   }
 

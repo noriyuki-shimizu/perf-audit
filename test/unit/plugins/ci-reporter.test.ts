@@ -219,7 +219,7 @@ describe('ciReporterPlugin', () => {
 
       const summary = mockContext.store.get('ciSummary');
       const codeSplittingSuggestion = summary.improvements.find(
-        (imp: any) => imp.name === 'Code Splitting',
+        imp => imp.name === 'Code Splitting',
       );
       expect(codeSplittingSuggestion).toBeDefined();
       expect(codeSplittingSuggestion.description).toContain('2 bundle(s) are larger than 150KB');
@@ -243,7 +243,7 @@ describe('ciReporterPlugin', () => {
 
       const summary = mockContext.store.get('ciSummary');
       const consolidationSuggestion = summary.improvements.find(
-        (imp: any) => imp.name === 'Bundle Consolidation',
+        imp => imp.name === 'Bundle Consolidation',
       );
       expect(consolidationSuggestion).toBeDefined();
       expect(consolidationSuggestion.description).toContain('Consider merging small bundles');

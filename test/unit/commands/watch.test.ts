@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WatchOptions } from '../../../src/types/commands.ts';
+import { BundleInfo } from '../../../src/types/config.ts';
 
 // Set test timeout
 vi.setConfig({ testTimeout: 100 });
@@ -86,8 +87,8 @@ vi.mock('../../../src/utils/size.ts', () => ({
 
 // BundleAnalyzer static methods mock
 const mockBundleAnalyzer = vi.mocked(await import('../../../src/core/bundle-analyzer.ts')).BundleAnalyzer;
-(mockBundleAnalyzer as any).applyBudgets = vi.fn().mockImplementation(bundles =>
-  bundles.map((b: any) => ({ ...b, status: 'ok' }))
+mockBundleAnalyzer.applyBudgets = vi.fn().mockImplementation((bundles: BundleInfo[]) =>
+  bundles.map(b => ({ ...b, status: 'ok' }))
 );
 
 describe('watchCommand', () => {
@@ -257,13 +258,29 @@ describe('watchCommand', () => {
       },
       budgets: {
         client: {
-          bundles: [],
+          bundles: {},
         },
         server: {
-          bundles: [],
+          bundles: {},
+        },
+        lighthouse: {
+          performance: { min: 0, warning: 0 },
+          accessibility: { min: 0 },
+          seo: { min: 0 },
+          bestPractices: { min: 0 },
+        },
+        metrics: {
+          fcp: { max: 0, warning: 0 },
+          lcp: { max: 0, warning: 0 },
+          cls: { max: 0, warning: 0 },
+          tti: { max: 0, warning: 0 },
         },
       },
-    } as any);
+      reports: {
+        formats: ['json', 'html'],
+        outputDir: 'reports',
+      },
+    });
 
     const options: WatchOptions = {};
 
@@ -331,11 +348,9 @@ describe('watchCommand', () => {
 
   it('should handle empty bundle analysis result', async () => {
     const BundleAnalyzer = vi.mocked(await import('../../../src/core/bundle-analyzer.ts')).BundleAnalyzer;
-    BundleAnalyzer.mockImplementationOnce(() =>
-      ({
-        analyzeBundles: vi.fn().mockResolvedValue([]),
-      }) as any
-    );
+    BundleAnalyzer.mockImplementationOnce(() => ({
+      analyzeBundles: vi.fn().mockResolvedValue([]),
+    }));
 
     const options: WatchOptions = {};
 

@@ -43,7 +43,7 @@ export interface BundleBudgetConfig {
 export interface BudgetConfig {
   client: BundleBudgetConfig;
   server: BundleBudgetConfig;
-  lighthouse: {
+  lighthouse?: {
     performance: LighthouseBudget;
     accessibility?: LighthouseBudget;
     bestPractices?: LighthouseBudget;

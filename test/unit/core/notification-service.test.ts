@@ -15,7 +15,7 @@ global.fetch = vi.fn();
 describe('NotificationService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (global.fetch as any).mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),
     });
@@ -90,7 +90,7 @@ describe('NotificationService', () => {
 
     it('should handle notification failures gracefully', async () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      (global.fetch as any).mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const appConfig = {
         notifications: {

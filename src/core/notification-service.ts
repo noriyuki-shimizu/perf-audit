@@ -1,3 +1,4 @@
+import type { PerfAuditConfig } from '../types/config.ts';
 import type { NotificationConfig, PerformanceAlert } from '../types/notification.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
@@ -5,7 +6,7 @@ import { formatSize } from '../utils/size.ts';
 export class NotificationService {
   private config: NotificationConfig;
 
-  constructor(appConfig: any) {
+  constructor(appConfig: PerfAuditConfig) {
     this.config = appConfig.notifications || {};
   }
 

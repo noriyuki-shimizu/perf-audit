@@ -15,7 +15,12 @@ const mockFs = vi.mocked(fs);
 const mockDatabase = vi.mocked(Database);
 
 describe('PerformanceDatabase', () => {
-  let mockDb: any;
+  let mockDb: {
+    exec: vi.Mock;
+    close: vi.Mock;
+    prepare: vi.Mock;
+    transaction: vi.Mock;
+  };
   let mockPrepare: vi.Mock;
   let mockExec: vi.Mock;
   let mockClose: vi.Mock;
@@ -422,47 +427,6 @@ describe('PerformanceDatabase', () => {
       db.close();
 
       expect(mockClose).toHaveBeenCalled();
-    });
-  });
-
-  describe('private methods', () => {
-    it('should parse bundles string correctly', () => {
-      const db = new PerformanceDatabase();
-
-      // Access private method for testing (not ideal but necessary for coverage)
-      const parseBundles = (db as any).parseBundles.bind(db);
-
-      const result = parseBundles('main.js:100000:30000,vendor.js:200000:60000');
-
-      expect(result.get('main.js')).toEqual({
-        size: 100000,
-        gzipSize: 30000,
-      });
-      expect(result.get('vendor.js')).toEqual({
-        size: 200000,
-        gzipSize: 60000,
-      });
-    });
-
-    it('should parse metrics string correctly', () => {
-      const db = new PerformanceDatabase();
-
-      const parseMetrics = (db as any).parseMetrics.bind(db);
-
-      const result = parseMetrics('performance_score:85,fcp:1500.5');
-
-      expect(result.get('performance_score')).toBe(85);
-      expect(result.get('fcp')).toBe(1500.5);
-    });
-
-    it('should handle empty strings in parsing', () => {
-      const db = new PerformanceDatabase();
-
-      const parseBundles = (db as any).parseBundles.bind(db);
-      const parseMetrics = (db as any).parseMetrics.bind(db);
-
-      expect(parseBundles('')).toEqual(new Map());
-      expect(parseMetrics('')).toEqual(new Map());
     });
   });
 

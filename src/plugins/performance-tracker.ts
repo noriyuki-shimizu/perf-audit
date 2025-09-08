@@ -22,7 +22,7 @@ export const performanceTrackerPlugin: Plugin = {
     afterAnalysis: async (context, data) => {
       if (!data) return;
 
-      const trackingDir = context.store.get('trackingDir');
+      const trackingDir = context.store.get('trackingDir') as string | undefined;
       const { result } = data;
 
       // Create performance snapshot
@@ -36,11 +36,11 @@ export const performanceTrackerPlugin: Plugin = {
       };
 
       // Save snapshot
-      const snapshotPath = path.join(trackingDir, `snapshot-${Date.now()}.json`);
+      const snapshotPath = path.join(trackingDir ?? '', `snapshot-${Date.now()}.json`);
       fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
 
       // Load recent snapshots for comparison
-      const recentSnapshots = loadRecentSnapshots(trackingDir, 10);
+      const recentSnapshots = loadRecentSnapshots(trackingDir ?? '', 10);
 
       if (recentSnapshots.length > 1) {
         const trends = analyzeTrends(recentSnapshots);
@@ -60,7 +60,7 @@ export const performanceTrackerPlugin: Plugin = {
     beforeReport: async (context, data) => {
       if (!data) return;
 
-      const trends = context.store.get('trends');
+      const trends = context.store.get('trends') as TrendAnalysis | undefined;
       if (trends && trends.recommendations.length > 0) {
         data.result.recommendations = [
           ...data.result.recommendations,

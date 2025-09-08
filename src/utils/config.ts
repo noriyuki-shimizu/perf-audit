@@ -85,6 +85,11 @@ export async function loadConfig(configPath?: string): Promise<PerfAuditConfig> 
  * @returns Merged configuration object
  */
 function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAuditConfig>): PerfAuditConfig {
+  const mergeLighthouseBudget = () => {
+    if (defaultConfig.budgets?.lighthouse !== undefined) return defaultConfig.budgets.lighthouse;
+    if (userConfig.budgets?.lighthouse !== undefined) return userConfig.budgets.lighthouse;
+    return undefined;
+  };
   return {
     project: { ...defaultConfig.project, ...userConfig.project },
     budgets: {
@@ -94,7 +99,7 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
       server: {
         bundles: { ...defaultConfig.budgets.server.bundles, ...userConfig.budgets?.server?.bundles },
       },
-      lighthouse: { ...defaultConfig.budgets.lighthouse, ...userConfig.budgets?.lighthouse },
+      lighthouse: mergeLighthouseBudget(),
       metrics: { ...defaultConfig.budgets.metrics, ...userConfig.budgets?.metrics },
     },
     analysis: { ...defaultConfig.analysis, ...userConfig.analysis },

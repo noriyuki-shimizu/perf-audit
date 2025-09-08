@@ -1,19 +1,28 @@
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
-import type { HookData, Plugin, PluginConfig, PluginContext, PluginHook } from '../types/plugin.ts';
+import { PerfAuditConfig } from '../types/config.ts';
+import type {
+  CISummary,
+  HookData,
+  Plugin,
+  PluginConfig,
+  PluginContext,
+  PluginHook,
+  TrendAnalysis,
+} from '../types/plugin.ts';
 
 export class PluginManager extends EventEmitter {
   private plugins: Map<string, Plugin> = new Map();
-  private pluginStores: Map<string, Map<string, any>> = new Map();
-  private config: any;
+  private pluginStores: Map<string, Map<string, string | TrendAnalysis | CISummary>> = new Map();
+  private config: PerfAuditConfig;
   private logger = {
     info: (message: string) => console.log(`[Plugin] ${message}`),
     warn: (message: string) => console.warn(`[Plugin] ${message}`),
     error: (message: string) => console.error(`[Plugin] ${message}`),
   };
 
-  constructor(config: any) {
+  constructor(config: PerfAuditConfig) {
     super();
     this.config = config;
   }
@@ -35,7 +44,7 @@ export class PluginManager extends EventEmitter {
 
   // Load a single plugin
   async loadPlugin(pluginConfig: PluginConfig): Promise<void> {
-    const { name, options = {} } = pluginConfig;
+    const { name } = pluginConfig;
 
     let plugin: Plugin;
 
@@ -55,17 +64,17 @@ export class PluginManager extends EventEmitter {
     }
 
     // Create plugin context
-    const store = new Map<string, any>();
+    const store = new Map<string, string | TrendAnalysis>();
     this.pluginStores.set(name, store);
 
     const context: PluginContext = {
-      config: { ...this.config, pluginOptions: options },
+      config: { ...this.config },
       logger: {
         info: (message: string) => this.logger.info(`[${name}] ${message}`),
         warn: (message: string) => this.logger.warn(`[${name}] ${message}`),
         error: (message: string) => this.logger.error(`[${name}] ${message}`),
       },
-      emit: (event: string, ...args: any[]) => this.emit(event, ...args),
+      emit: (event: string, ...args: unknown[]) => this.emit(event, ...args),
       store,
     };
 
@@ -94,7 +103,7 @@ export class PluginManager extends EventEmitter {
             warn: (message: string) => this.logger.warn(`[${name}] ${message}`),
             error: (message: string) => this.logger.error(`[${name}] ${message}`),
           },
-          emit: (event: string, ...args: any[]) => this.emit(event, ...args),
+          emit: (event: string, ...args: unknown[]) => this.emit(event, ...args),
           store,
         };
 
@@ -124,7 +133,7 @@ export class PluginManager extends EventEmitter {
             warn: (message: string) => this.logger.warn(`[${name}] ${message}`),
             error: (message: string) => this.logger.error(`[${name}] ${message}`),
           },
-          emit: (event: string, ...args: any[]) => this.emit(event, ...args),
+          emit: (event: string, ...args: unknown[]) => this.emit(event, ...args),
           store,
         };
 

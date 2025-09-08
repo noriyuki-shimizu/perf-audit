@@ -1,8 +1,10 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
+import type { BundleDiff } from '../types/bundle.ts';
 import type { BundleInfo, PerformanceMetrics } from '../types/config.ts';
-import type { BuildRecord, TrendData } from '../types/database.ts';
+import type { BuildBundleMetricRecord, BuildRecord, RecommendationRecord, TrendData } from '../types/database.ts';
+import type { MetricDiff } from '../types/metric.ts';
 
 export class PerformanceDatabase {
   private db: Database.Database;
@@ -75,7 +77,7 @@ export class PerformanceDatabase {
     bundles: BundleInfo[];
     metrics?: PerformanceMetrics;
     recommendations: string[];
-  }): number {
+  }): number | bigint {
     const insertBuild = this.db.prepare(`
       INSERT INTO builds (timestamp, branch, commit_hash, url, device)
       VALUES (?, ?, ?, ?, ?)
@@ -96,7 +98,16 @@ export class PerformanceDatabase {
       VALUES (?, ?, ?)
     `);
 
-    const transaction = this.db.transaction((data: any) => {
+    const transaction = this.db.transaction((data: {
+      timestamp: string;
+      branch?: string;
+      commitHash?: string;
+      url?: string;
+      device?: string;
+      bundles: BundleInfo[];
+      metrics?: PerformanceMetrics;
+      recommendations: string[];
+    }) => {
       const result = insertBuild.run(
         data.timestamp,
         data.branch || null,
@@ -104,7 +115,7 @@ export class PerformanceDatabase {
         data.url || null,
         data.device || null,
       );
-      const buildId = result.lastInsertRowid as number;
+      const buildId = result.lastInsertRowid;
 
       // Save bundles
       for (const bundle of data.bundles) {
@@ -215,11 +226,7 @@ export class PerformanceDatabase {
       ORDER BY size DESC
     `;
 
-    return this.db.prepare(query).all(buildId).map((bundle: any) => ({
-      ...bundle,
-      gzipSize: bundle.gzipSize || undefined,
-      status: 'ok' as const, // Default status since we don't store it in DB
-    }));
+    return this.db.prepare<[number], BundleInfo>(query).all(buildId);
   }
 
   private getRecommendationsForBuild(buildId: number): string[] {
@@ -229,17 +236,17 @@ export class PerformanceDatabase {
       WHERE build_id = ?
     `;
 
-    return this.db.prepare(query).all(buildId).map((rec: any) => rec.message);
+    return this.db.prepare<[number], RecommendationRecord>(query).all(buildId).map(rec => rec.message);
   }
 
   getBuildComparison(buildId1: number, buildId2: number): {
-    build1: any;
-    build2: any;
-    bundleDiff: any[];
-    metricDiff: any[];
+    build1: BuildBundleMetricRecord | undefined;
+    build2: BuildBundleMetricRecord | undefined;
+    bundleDiff: BundleDiff[];
+    metricDiff: MetricDiff[];
   } {
     const getBuildQuery = `
-      SELECT b.*, 
+      SELECT b.*,
         GROUP_CONCAT(bu.name || ':' || bu.size || ':' || COALESCE(bu.gzip_size, 0)) as bundles,
         GROUP_CONCAT(m.metric_name || ':' || m.value) as metrics
       FROM builds b
@@ -249,11 +256,11 @@ export class PerformanceDatabase {
       GROUP BY b.id
     `;
 
-    const build1 = this.db.prepare(getBuildQuery).get(buildId1) as any;
-    const build2 = this.db.prepare(getBuildQuery).get(buildId2) as any;
+    const build1 = this.db.prepare<[number], BuildBundleMetricRecord>(getBuildQuery).get(buildId1);
+    const build2 = this.db.prepare<[number], BuildBundleMetricRecord>(getBuildQuery).get(buildId2);
 
     // Parse and compare bundles
-    const bundleDiff: any[] = [];
+    const bundleDiff: BundleDiff[] = [];
     const bundles1 = this.parseBundles(build1?.bundles || '');
     const bundles2 = this.parseBundles(build2?.bundles || '');
 
@@ -273,7 +280,7 @@ export class PerformanceDatabase {
     }
 
     // Parse and compare metrics
-    const metricDiff: any[] = [];
+    const metricDiff: MetricDiff[] = [];
     const metrics1 = this.parseMetrics(build1?.metrics || '');
     const metrics2 = this.parseMetrics(build2?.metrics || '');
 
@@ -326,7 +333,7 @@ export class PerformanceDatabase {
 
   cleanup(retentionDays: number): number {
     const deleteQuery = `
-      DELETE FROM builds 
+      DELETE FROM builds
       WHERE timestamp < datetime('now', '-${retentionDays} days')
     `;
 
