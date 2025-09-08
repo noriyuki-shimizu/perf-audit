@@ -237,7 +237,7 @@ const validateTrendQuery = (query: express.Request['query']): TrendQuery => {
   }
 
   return {
-    days: parseInt(query.days ?? '30'),
+    days: parseInt(query.days ?? '30', 10),
     startDate: query.startDate !== undefined ? `${query.startDate} 00:00:00` : '',
     endDate: query.endDate !== undefined ? `${query.endDate} 23:59:59` : '',
   };
