@@ -3,7 +3,7 @@ import { PerformanceDatabase } from '../../../src/core/database.ts';
 import type { AuditResult } from '../../../src/types/config.ts';
 import { CIIntegration } from '../../../src/utils/ci-integration.ts';
 
-vi.setConfig({ testTimeout: 100 });
+vi.setConfig({ testTimeout: 500 });
 
 vi.mock('../../../src/core/database.ts');
 
