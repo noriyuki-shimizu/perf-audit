@@ -1,6 +1,13 @@
 import chokidar, { FSWatcher } from 'chokidar';
 import ora from 'ora';
 import path from 'path';
+import {
+  DEFAULT_DEBOUNCE_INTERVAL,
+  MIN_PERCENTAGE_CHANGE_THRESHOLD,
+  MIN_SIZE_CHANGE_THRESHOLD,
+  WATCHER_POLL_INTERVAL,
+  WATCHER_STABILITY_THRESHOLD,
+} from '../constants/index.ts';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import { NotificationService } from '../core/notification-service.ts';
@@ -10,21 +17,6 @@ import { applyBudgetsToAllBundles, createAuditResult } from '../utils/bundle.ts'
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
-
-/** Default debounce interval in milliseconds */
-const DEFAULT_DEBOUNCE_INTERVAL = 1000;
-
-/** File watcher stability threshold in milliseconds */
-const WATCHER_STABILITY_THRESHOLD = 500;
-
-/** File watcher poll interval in milliseconds */
-const WATCHER_POLL_INTERVAL = 100;
-
-/** Minimum size change threshold in bytes for significance */
-const MIN_SIZE_CHANGE_THRESHOLD = 1024;
-
-/** Minimum percentage change threshold for significance */
-const MIN_PERCENTAGE_CHANGE_THRESHOLD = 5;
 
 /**
  * Execute watch command to monitor bundle changes in real-time

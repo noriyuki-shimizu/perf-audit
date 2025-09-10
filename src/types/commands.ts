@@ -43,7 +43,6 @@ export interface CommandLighthouseOptions {
 /** Watch options interface */
 export interface WatchOptions {
   interval?: number;
-  threshold?: number;
   notify?: boolean;
   silent?: boolean;
 }

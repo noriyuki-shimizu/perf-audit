@@ -48,7 +48,6 @@
 - SSRアプリケーション対応
 - オプション:
   - `--format <type>`: 出力形式 (json, html, console)
-  - `--compare <branch>`: ブランチ比較
   - `--details`: 詳細分析モード
 
 #### `perf-audit lighthouse <url> [options]`

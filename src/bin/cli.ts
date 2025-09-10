@@ -9,6 +9,7 @@ import { historyCommand } from '../commands/history.ts';
 import { initCommand } from '../commands/init.ts';
 import { lighthouseCommand } from '../commands/lighthouse.ts';
 import { watchCommand } from '../commands/watch.ts';
+import { DEFAULT_CLI_OPTIONS, DEFAULT_HOST, DEFAULT_PORT } from '../constants/server.ts';
 import { Logger } from '../utils/logger.ts';
 import { getPackageJson } from '../utils/package.ts';
 
@@ -46,7 +47,7 @@ program
 program
   .command('analyze')
   .description('Analyze bundle size and performance')
-  .option('--format <type>', 'Output format (json, html, console)', 'console')
+  .option('--format <type>', 'Output format (json, html, console)', DEFAULT_CLI_OPTIONS.OUTPUT_FORMAT)
   .option('--compare <branch>', 'Compare with specified branch')
   .option('--details', 'Show detailed analysis')
   .action(analyzeCommand);
@@ -55,16 +56,16 @@ program
 program
   .command('budget')
   .description('Check performance budget')
-  .option('--format <type>', 'Output format (json, console)', 'console')
+  .option('--format <type>', 'Output format (json, console)', DEFAULT_CLI_OPTIONS.OUTPUT_FORMAT)
   .action(budgetCommand);
 
 // Lighthouse command
 program
   .command('lighthouse <url>')
   .description('Run Lighthouse performance audit')
-  .option('--device <type>', 'Device type (mobile, desktop)', 'mobile')
+  .option('--device <type>', 'Device type (mobile, desktop)', DEFAULT_CLI_OPTIONS.LIGHTHOUSE_DEVICE)
   .option('--no-throttling', 'Disable network throttling')
-  .option('--format <type>', 'Output format (json, console)', 'console')
+  .option('--format <type>', 'Output format (json, console)', DEFAULT_CLI_OPTIONS.OUTPUT_FORMAT)
   .action((url, options) => {
     lighthouseCommand(url, {
       device: options.device,
@@ -77,9 +78,9 @@ program
 program
   .command('history')
   .description('Show performance history and trends')
-  .option('--days <n>', 'Number of days to show', '30')
+  .option('--days <n>', 'Number of days to show', DEFAULT_CLI_OPTIONS.HISTORY_DAYS)
   .option('--metric <type>', 'Show specific metric trend')
-  .option('--format <type>', 'Output format (json, console)', 'console')
+  .option('--format <type>', 'Output format (json, console)', DEFAULT_CLI_OPTIONS.OUTPUT_FORMAT)
   .action(options => {
     historyCommand({
       days: parseInt(options.days),
@@ -92,14 +93,13 @@ program
 program
   .command('watch')
   .description('Watch for changes and analyze performance in real-time')
-  .option('--interval <ms>', 'Debounce interval in milliseconds', '1000')
-  .option('--threshold <kb>', 'Size change threshold in KB', '5')
+  .option('--interval <ms>', 'Debounce interval in milliseconds', DEFAULT_CLI_OPTIONS.WATCH_INTERVAL)
+  .option('--threshold <kb>', 'Size change threshold in KB', DEFAULT_CLI_OPTIONS.WATCH_THRESHOLD)
   .option('--notify', 'Enable notifications')
   .option('--silent', 'Reduce output verbosity')
   .action(options => {
     watchCommand({
       interval: parseInt(options.interval),
-      threshold: parseInt(options.threshold),
       notify: options.notify,
       silent: options.silent,
     });
@@ -109,8 +109,8 @@ program
 program
   .command('dashboard')
   .description('Start web dashboard for performance visualization')
-  .option('--port <n>', 'Port to run dashboard on', '3000')
-  .option('--host <host>', 'Host to bind dashboard to', 'localhost')
+  .option('--port <n>', 'Port to run dashboard on', DEFAULT_PORT.toString())
+  .option('--host <host>', 'Host to bind dashboard to', DEFAULT_HOST)
   .option('--open', 'Open dashboard in browser automatically')
   .action(options => {
     dashboardCommand({

@@ -1,5 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import {
+  DEFAULT_CLIENT_BUDGETS,
+  DEFAULT_CLIENT_OUTPUT_PATH,
+  DEFAULT_CONFIG_FILE,
+  DEFAULT_IGNORE_PATHS,
+  DEFAULT_LIGHTHOUSE_SCORES,
+  DEFAULT_METRICS,
+  DEFAULT_REPORTS_OUTPUT_DIR,
+  DEFAULT_SERVER_BUDGETS,
+  DEFAULT_SERVER_OUTPUT_PATH,
+} from '../constants/index.ts';
 import { PerfAuditConfig } from '../types/config.ts';
 import { Logger } from './logger.ts';
 
@@ -7,48 +18,48 @@ import { Logger } from './logger.ts';
 const DEFAULT_CONFIG: PerfAuditConfig = {
   project: {
     client: {
-      outputPath: './dist',
+      outputPath: DEFAULT_CLIENT_OUTPUT_PATH,
     },
     server: {
-      outputPath: './dist/server',
+      outputPath: DEFAULT_SERVER_OUTPUT_PATH,
     },
   },
   budgets: {
     client: {
       bundles: {
-        main: { max: '150KB', warning: '120KB' },
-        vendor: { max: '100KB', warning: '80KB' },
-        total: { max: '500KB', warning: '400KB' },
+        main: DEFAULT_CLIENT_BUDGETS.MAIN,
+        vendor: DEFAULT_CLIENT_BUDGETS.VENDOR,
+        total: DEFAULT_CLIENT_BUDGETS.TOTAL,
       },
     },
     server: {
       bundles: {
-        main: { max: '200KB', warning: '150KB' },
-        vendor: { max: '150KB', warning: '120KB' },
-        total: { max: '800KB', warning: '600KB' },
+        main: DEFAULT_SERVER_BUDGETS.MAIN,
+        vendor: DEFAULT_SERVER_BUDGETS.VENDOR,
+        total: DEFAULT_SERVER_BUDGETS.TOTAL,
       },
     },
     lighthouse: {
-      performance: { min: 90, warning: 95 },
-      accessibility: { min: 90, warning: 95 },
-      bestPractices: { min: 90, warning: 95 },
-      seo: { min: 90, warning: 95 },
+      performance: DEFAULT_LIGHTHOUSE_SCORES.PERFORMANCE,
+      accessibility: DEFAULT_LIGHTHOUSE_SCORES.ACCESSIBILITY,
+      bestPractices: DEFAULT_LIGHTHOUSE_SCORES.BEST_PRACTICES,
+      seo: DEFAULT_LIGHTHOUSE_SCORES.SEO,
     },
     metrics: {
-      fcp: { max: 1500, warning: 1000 },
-      lcp: { max: 2500, warning: 2000 },
-      cls: { max: 0.1, warning: 0.05 },
-      tti: { max: 3500, warning: 3000 },
+      fcp: DEFAULT_METRICS.FCP,
+      lcp: DEFAULT_METRICS.LCP,
+      cls: DEFAULT_METRICS.CLS,
+      tti: DEFAULT_METRICS.TTI,
     },
   },
   analysis: {
     target: 'both',
     gzip: true,
-    ignorePaths: ['**/*.test.js', '**/*.spec.js'],
+    ignorePaths: [...DEFAULT_IGNORE_PATHS],
   },
   reports: {
     formats: ['console', 'json', 'html'],
-    outputDir: './performance-reports',
+    outputDir: DEFAULT_REPORTS_OUTPUT_DIR,
   },
 };
 
@@ -58,7 +69,7 @@ const DEFAULT_CONFIG: PerfAuditConfig = {
  * @returns Promise that resolves to the loaded configuration object
  */
 export async function loadConfig(configPath?: string): Promise<PerfAuditConfig> {
-  const defaultConfigPath = path.join(process.cwd(), 'perf-audit.config.js');
+  const defaultConfigPath = path.join(process.cwd(), DEFAULT_CONFIG_FILE);
   const finalConfigPath = configPath || defaultConfigPath;
 
   try {
@@ -112,7 +123,7 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
  * Generate a sample configuration file
  * @param outputPath - 出力先のパス（デフォルトは 'perf-audit.config.js'）
  */
-export function generateConfigFile(outputPath: string = 'perf-audit.config.js'): void {
+export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): void {
   const configContent = `export default {
   // プロジェクト設定
   project: {
