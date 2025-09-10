@@ -11,7 +11,6 @@ import { PluginManager } from '../core/plugin-system.ts';
 import type {
   AfterAnalysisContext,
   AfterBundleAnalysisContext,
-  AfterReportContext,
   AnalyzeOptions,
   BeforeReportContext,
   BundleAnalysisContext,
@@ -185,7 +184,7 @@ const generateJsonReport = async (
   ReportGenerator.generateJsonReport(result, outputPath);
   Logger.success(`JSON report saved to: ${outputPath}`);
   Logger.json(result);
-  await pluginManager.executeHook('afterReport', { result, outputPath } as AfterReportContext);
+  await pluginManager.executeHook('afterReport', { result, outputPath });
 };
 
 /**
@@ -203,7 +202,7 @@ const generateHtmlReport = async (
   ReportGenerator.generateHtmlReport(result, outputPath);
   Logger.success(`HTML report saved to: ${outputPath}`);
   Logger.info('Open the HTML file in your browser to view the detailed report.');
-  await pluginManager.executeHook('afterReport', { result, outputPath } as AfterReportContext);
+  await pluginManager.executeHook('afterReport', { result, outputPath });
 };
 
 /**

@@ -329,7 +329,12 @@ const handleBudgetError = (
   process.exit(ERROR_EXIT_CODE);
 };
 
-const isSizeUnitKey = (value: unknown): value is keyof typeof SIZE_UNITS => {
+/**
+ * Check if value is a supported size unit
+ * @param value - Value to check
+ * @returns Whether the value is a supported size unit
+ */
+const isSupportedSizeUnit = (value: unknown): value is keyof typeof SIZE_UNITS => {
   return typeof value === 'string' && value in SIZE_UNITS;
 };
 
@@ -347,7 +352,7 @@ const parseSize = (sizeString: string): number => {
   const [, value, unit] = match;
   const unitKey = unit.toUpperCase();
 
-  if (!isSizeUnitKey(unitKey)) {
+  if (!isSupportedSizeUnit(unitKey)) {
     throw new Error(`Unsupported size unit: ${unit}`);
   }
 
