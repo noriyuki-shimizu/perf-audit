@@ -1,6 +1,7 @@
 import * as chromeLauncher from 'chrome-launcher';
 import type { Result } from 'lighthouse';
 import lighthouse from 'lighthouse';
+import { CHROME_FLAGS, DESKTOP_CONFIG, MOBILE_CONFIG } from '../constants/index.ts';
 import type { PerformanceMetrics } from '../types/config.ts';
 import type { LighthouseConfig, LighthouseOptions } from '../types/lighthouse.ts';
 
@@ -11,16 +12,16 @@ export class LighthouseRunner {
       settings: {
         throttlingMethod: 'simulate',
         throttling: {
-          rttMs: 40,
-          throughputKbps: 10240,
-          cpuSlowdownMultiplier: 1,
+          rttMs: DESKTOP_CONFIG.RTT_MS,
+          throughputKbps: DESKTOP_CONFIG.THROUGHPUT_KBPS,
+          cpuSlowdownMultiplier: DESKTOP_CONFIG.CPU_SLOWDOWN_MULTIPLIER,
         },
         formFactor: 'desktop',
         screenEmulation: {
           mobile: false,
-          width: 1350,
-          height: 940,
-          deviceScaleFactor: 1,
+          width: DESKTOP_CONFIG.SCREEN_WIDTH,
+          height: DESKTOP_CONFIG.SCREEN_HEIGHT,
+          deviceScaleFactor: DESKTOP_CONFIG.DEVICE_SCALE_FACTOR,
           disabled: false,
         },
       },
@@ -33,16 +34,16 @@ export class LighthouseRunner {
       settings: {
         throttlingMethod: 'simulate',
         throttling: {
-          rttMs: 150,
-          throughputKbps: 1638,
-          cpuSlowdownMultiplier: 4,
+          rttMs: MOBILE_CONFIG.RTT_MS,
+          throughputKbps: MOBILE_CONFIG.THROUGHPUT_KBPS,
+          cpuSlowdownMultiplier: MOBILE_CONFIG.CPU_SLOWDOWN_MULTIPLIER,
         },
         formFactor: 'mobile',
         screenEmulation: {
           mobile: true,
-          width: 360,
-          height: 640,
-          deviceScaleFactor: 2.625,
+          width: MOBILE_CONFIG.SCREEN_WIDTH,
+          height: MOBILE_CONFIG.SCREEN_HEIGHT,
+          deviceScaleFactor: MOBILE_CONFIG.DEVICE_SCALE_FACTOR,
           disabled: false,
         },
       },
@@ -50,7 +51,7 @@ export class LighthouseRunner {
   }
 
   async runAudit(options: LighthouseOptions): Promise<PerformanceMetrics & { rawResult?: Result; }> {
-    const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });
+    const chrome = await chromeLauncher.launch({ chromeFlags: [...CHROME_FLAGS] });
 
     try {
       const config = options.device === 'desktop'

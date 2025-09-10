@@ -1,23 +1,18 @@
+import { BYTES_PER_KB, SIZE_UNITS } from '../constants/index.ts';
+
 /**
  * サイズ文字列をパースしてバイト数に変換
  * @param sizeString - サイズ文字列（例: '150KB', '2MB'）
  * @returns バイト数
  */
 export function parseSize(sizeString: string): number {
-  const units: { [key: string]: number; } = {
-    'B': 1,
-    'KB': 1024,
-    'MB': 1024 * 1024,
-    'GB': 1024 * 1024 * 1024,
-  };
-
   const match = sizeString.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
   if (!match) {
     throw new Error(`Invalid size format: ${sizeString}`);
   }
 
   const [, value, unit] = match;
-  const multiplier = units[unit.toUpperCase()] || 1;
+  const multiplier = SIZE_UNITS[unit.toUpperCase() as keyof typeof SIZE_UNITS] || 1;
 
   return Math.round(parseFloat(value) * multiplier);
 }
@@ -31,7 +26,7 @@ export function parseSize(sizeString: string): number {
 export function normalizeSize(bytes: number, decimals: number = 1): number {
   if (bytes <= 0) return 0;
 
-  const k = 1024;
+  const k = BYTES_PER_KB;
   const dm = decimals < 0 ? 0 : decimals;
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -47,7 +42,7 @@ export function normalizeSize(bytes: number, decimals: number = 1): number {
 export function formatSize(bytes: number, decimals: number = 1): string {
   if (bytes <= 0) return '0B';
 
-  const k = 1024;
+  const k = BYTES_PER_KB;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
 

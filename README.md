@@ -38,7 +38,6 @@ perf-audit analyze [オプション]
 オプション:
 
 - `--format <type>`: 出力形式 (json, html, console) [デフォルト: console]
-- `--compare <branch>`: 指定したブランチと比較
 - `--details`: 詳細分析を表示
 
 設定ファイルの `analysis.target` で解析対象を制御できます：
@@ -132,7 +131,6 @@ perf-audit watch [オプション]
 オプション:
 
 - `--interval <ms>`: デバウンス間隔（ミリ秒） [デフォルト: 1000]
-- `--threshold <kb>`: サイズ変化の閾値（KB） [デフォルト: 5]
 - `--notify`: 通知を有効化
 - `--silent`: 出力の冗長性を削減
 

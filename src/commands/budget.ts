@@ -1,4 +1,5 @@
 import ora from 'ora';
+import { ERROR_EXIT_CODE, SIZE_UNITS, WARNING_EXIT_CODE } from '../constants/index.ts';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import type { BudgetJsonOutput, BudgetOptions, BudgetStatus, BundleType } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
@@ -8,20 +9,6 @@ import { getCurrentTimestamp } from '../utils/command-helpers.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
-
-/** Size unit multipliers in bytes */
-const SIZE_UNITS: Record<string, number> = {
-  'B': 1,
-  'KB': 1024,
-  'MB': 1024 * 1024,
-  'GB': 1024 * 1024 * 1024,
-} as const;
-
-/** Warning exit code for CI environments */
-const WARNING_EXIT_CODE = 2;
-
-/** Error exit code for CI environments */
-const ERROR_EXIT_CODE = 1;
 
 /**
  * Execute performance budget check command
@@ -343,6 +330,15 @@ const handleBudgetError = (
 };
 
 /**
+ * Check if value is a supported size unit
+ * @param value - Value to check
+ * @returns Whether the value is a supported size unit
+ */
+const isSupportedSizeUnit = (value: unknown): value is keyof typeof SIZE_UNITS => {
+  return typeof value === 'string' && value in SIZE_UNITS;
+};
+
+/**
  * Parse size string to bytes
  * @param sizeString - Size string with unit (e.g., "100KB")
  * @returns Size in bytes
@@ -354,7 +350,13 @@ const parseSize = (sizeString: string): number => {
   }
 
   const [, value, unit] = match;
-  const multiplier = SIZE_UNITS[unit.toUpperCase()] || 1;
+  const unitKey = unit.toUpperCase();
+
+  if (!isSupportedSizeUnit(unitKey)) {
+    throw new Error(`Unsupported size unit: ${unit}`);
+  }
+
+  const multiplier = SIZE_UNITS[unitKey];
 
   return Math.round(parseFloat(value) * multiplier);
 };

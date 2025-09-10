@@ -1,29 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
+import {
+  CACHE_DIRECTORY,
+  CACHE_RETENTION_DAYS,
+  DATABASE_PATH,
+  DEFAULT_RETENTION_DAYS,
+  MILLISECONDS_PER_DAY,
+  REPORT_EXTENSIONS,
+} from '../constants/index.ts';
 import { PerformanceDatabase } from '../core/database.ts';
 import type { CleanOptions } from '../types/commands.ts';
 import type { PerfAuditConfig } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
-
-/** Default retention period in days */
-const DEFAULT_RETENTION_DAYS = 30;
-
-/** Cache retention period in days */
-const CACHE_RETENTION_DAYS = 7;
-
-/** Milliseconds per day */
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-
-/** Valid report file extensions */
-const REPORT_EXTENSIONS = ['.json', '.html'] as const;
-
-/** Database file path */
-const DATABASE_PATH = '.perf-audit/performance.db';
-
-/** Cache directory path */
-const CACHE_DIRECTORY = '.perf-audit/cache';
 
 /**
  * Execute performance data cleaning command

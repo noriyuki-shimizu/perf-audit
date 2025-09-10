@@ -1,10 +1,16 @@
 import path from 'path';
+import {
+  HEAVY_SERVER_BUNDLE_THRESHOLD,
+  LARGE_CLIENT_BUNDLE_THRESHOLD,
+  LARGE_SERVER_BUNDLE_THRESHOLD,
+  MIN_SMALL_CHUNKS_FOR_RECOMMENDATION,
+  SMALL_CHUNK_THRESHOLD,
+} from '../constants/index.ts';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import { PluginManager } from '../core/plugin-system.ts';
 import type {
   AfterAnalysisContext,
   AfterBundleAnalysisContext,
-  AfterReportContext,
   AnalyzeOptions,
   BeforeReportContext,
   BundleAnalysisContext,
@@ -22,21 +28,6 @@ import {
 import { Logger } from '../utils/logger.ts';
 import { ReportGenerator } from '../utils/report-generator.ts';
 import { ConsoleReporter } from '../utils/reporter.ts';
-
-/** Large client bundle size threshold in bytes */
-const LARGE_CLIENT_BUNDLE_THRESHOLD = 150 * 1024;
-
-/** Small chunk size threshold in bytes */
-const SMALL_CHUNK_THRESHOLD = 10 * 1024;
-
-/** Large server bundle size threshold in bytes */
-const LARGE_SERVER_BUNDLE_THRESHOLD = 200 * 1024;
-
-/** Heavy server bundle size threshold in bytes */
-const HEAVY_SERVER_BUNDLE_THRESHOLD = 100 * 1024;
-
-/** Minimum number of small chunks to trigger merge recommendation */
-const MIN_SMALL_CHUNKS_FOR_RECOMMENDATION = 3;
 
 /**
  * Execute bundle analysis command
@@ -193,7 +184,7 @@ const generateJsonReport = async (
   ReportGenerator.generateJsonReport(result, outputPath);
   Logger.success(`JSON report saved to: ${outputPath}`);
   Logger.json(result);
-  await pluginManager.executeHook('afterReport', { result, outputPath } as AfterReportContext);
+  await pluginManager.executeHook('afterReport', { result, outputPath });
 };
 
 /**
@@ -211,7 +202,7 @@ const generateHtmlReport = async (
   ReportGenerator.generateHtmlReport(result, outputPath);
   Logger.success(`HTML report saved to: ${outputPath}`);
   Logger.info('Open the HTML file in your browser to view the detailed report.');
-  await pluginManager.executeHook('afterReport', { result, outputPath } as AfterReportContext);
+  await pluginManager.executeHook('afterReport', { result, outputPath });
 };
 
 /**
@@ -234,7 +225,7 @@ const generateConsoleReport = async (
   await pluginManager.executeHook('afterReport', {
     result,
     outputPath: 'console',
-  } as AfterReportContext);
+  });
 };
 
 /**
