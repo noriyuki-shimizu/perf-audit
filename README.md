@@ -559,22 +559,38 @@ jobs:
 
 ## 開発
 
+### 事前準備
+
+[volta](https://docs.volta.sh/guide/getting-started) のインストール必須
+
+### 各種コマンド
+
 ```bash
 # 依存関係のインストール
-npm install
+npm ci
 
 # ビルド
 npm run build
 
-# 開発モード
-npm run dev
+# 起動
+npm start
 
 # テスト実行
 npm test
 
 # Lint
 npm run lint
+
+# Type Check
+npm run typecheck
+
+# Format Check
+npm run format:check
 ```
+
+### 開発エディタ
+
+VSCode
 
 ## ライセンス
 
