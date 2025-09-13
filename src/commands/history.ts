@@ -1,6 +1,6 @@
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import type { HistoryOptions } from '../types/commands.ts';
-import type { TrendData } from '../types/database.ts';
+import type { TrendData } from '../types/database/index.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize } from '../utils/size.ts';
 
@@ -8,12 +8,12 @@ import { formatSize } from '../utils/size.ts';
  * Execute performance history command to display historical performance data
  * @param options - History command options including format and metric filters
  */
-export function historyCommand(options: HistoryOptions): void {
-  const db = new PerformanceDatabase();
+export async function historyCommand(options: HistoryOptions): Promise<void> {
+  const db = await PerformanceDatabaseService.instance();
 
   try {
-    const trendData = db.getTrendData(options.days);
-    const recentBuilds = db.getRecentBuilds(10);
+    const trendData = await db.getTrendData(options.days);
+    const recentBuilds = await db.getRecentBuilds(10);
 
     if (options.format === 'json') {
       const output = {

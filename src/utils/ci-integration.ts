@@ -1,4 +1,4 @@
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import type { AuditResult, CIContext } from '../types/config.ts';
 import { formatSize } from './size.ts';
 
@@ -59,7 +59,7 @@ export class CIIntegration {
     };
   }
 
-  static generateGitHubActionsSummary(result: AuditResult): string {
+  static async generateGitHubActionsSummary(result: AuditResult): Promise<string> {
     const totalSize = result.bundles.reduce((sum, b) => sum + b.size, 0);
     const totalGzipSize = result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
 
@@ -121,7 +121,7 @@ export class CIIntegration {
     }
 
     // Historical comparison
-    const comparison = this.getHistoricalComparison();
+    const comparison = await this.getHistoricalComparison();
     if (comparison) {
       summary += `\n## 📈 Trend Analysis\n\n`;
       summary += comparison;
@@ -176,7 +176,7 @@ ${testCases.join('\n')}
 </testsuites>`;
   }
 
-  static outputCIAnnotations(result: AuditResult, ciContext: CIContext): void {
+  static async outputCIAnnotations(result: AuditResult, ciContext: CIContext): Promise<void> {
     if (!ciContext.isCI) return;
 
     // GitHub Actions annotations
@@ -194,7 +194,7 @@ ${testCases.join('\n')}
       }
 
       // Add GitHub Actions summary
-      const summary = this.generateGitHubActionsSummary(result);
+      const summary = await this.generateGitHubActionsSummary(result);
       console.log(`\n${summary}`);
     }
 
@@ -202,16 +202,19 @@ ${testCases.join('\n')}
     // Jenkins annotations would go here
   }
 
-  private static getHistoricalComparison(): string | null {
+  private static async getHistoricalComparison(): Promise<string | null> {
     try {
-      const db = new PerformanceDatabase();
-      const recent = db.getRecentBuilds(2);
-      db.close();
+      const db = await PerformanceDatabaseService.instance();
+      const recent = await db.getRecentBuilds(2);
 
-      if (recent.length < 2) return null;
+      if (recent.length < 2) {
+        db.close();
+        return null;
+      }
 
       const [current, previous] = recent;
-      const comparison = db.getBuildComparison(current.id, previous.id);
+      const comparison = await db.getBuildComparison(current.id, previous.id);
+      db.close();
 
       if (comparison.bundleDiff.length === 0) return null;
 

@@ -31,11 +31,13 @@ vi.mock('../../../src/core/bundle-analyzer.ts', () => ({
   })),
 }));
 
-vi.mock('../../../src/core/database.ts', () => ({
-  PerformanceDatabase: vi.fn().mockImplementation(() => ({
-    saveBuild: vi.fn().mockReturnValue('build-123'),
-    close: vi.fn(),
-  })),
+vi.mock('../../../src/core/database/index.ts', () => ({
+  PerformanceDatabaseService: {
+    instance: vi.fn().mockReturnValue({
+      saveBuild: vi.fn().mockReturnValue('build-123'),
+      close: vi.fn(),
+    }),
+  },
 }));
 
 vi.mock('../../../src/core/notification-service.ts', () => ({
@@ -294,8 +296,8 @@ describe('watchCommand', () => {
 
     await watchCommand(options);
 
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    const mockInstance = PerformanceDatabase.mock.results[0]?.value;
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    const mockInstance = vi.mocked(PerformanceDatabaseService.instance)();
     expect(mockInstance.saveBuild).toHaveBeenCalledWith({
       timestamp: expect.any(String),
       bundles: expect.any(Array),
@@ -365,8 +367,8 @@ describe('watchCommand', () => {
 
     await watchCommand(options);
 
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    expect(PerformanceDatabase).toHaveBeenCalled();
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    expect(PerformanceDatabaseService.instance).toHaveBeenCalled();
   });
 
   it('should set up watcher with correct options', async () => {

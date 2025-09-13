@@ -4,9 +4,9 @@ import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import type { Build, BundleStats, DashboardOptions, DashboardStats, TrendData, TrendQuery } from '../types/commands.ts';
-import type { BundleInfo } from '../types/config.ts';
+import type { BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
 import { Logger } from '../utils/logger.ts';
 import { formatSize, normalizeSize } from '../utils/size.ts';
@@ -90,8 +90,8 @@ const openBrowser = (host: string, port: number): void => {
  * @param app - Express application
  * @param config - Application configuration
  */
-const setupAPIRoutes = (app: express.Application, config: unknown): void => {
-  const db = new PerformanceDatabase();
+const setupAPIRoutes = async (app: express.Application, config: PerfAuditConfig): Promise<void> => {
+  const db = await PerformanceDatabaseService.instance();
 
   app.get('/api/builds', handleGetBuilds(db));
   app.get('/api/builds/:id', handleGetBuild(db));
@@ -107,68 +107,72 @@ const setupAPIRoutes = (app: express.Application, config: unknown): void => {
  * Handle get recent builds request
  * @param db - Performance database instance
  */
-const handleGetBuilds = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const limit = parseInt(req.query.limit as string) || 50;
-    const builds = db.getRecentBuilds(limit, 'DESC');
-    res.json(builds);
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch builds' });
-  }
-};
+const handleGetBuilds =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const builds = await db.getRecentBuilds(limit, 'DESC');
+      res.json(builds);
+    } catch {
+      res.status(500).json({ error: 'Failed to fetch builds' });
+    }
+  };
 
 /**
  * Handle get build by ID request
  * @param db - Performance database instance
  */
-const handleGetBuild = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const build = db.getBuild(parseInt(req.params.id));
-    if (!build) {
-      res.status(404).json({ error: 'Build not found' });
-      return;
+const handleGetBuild =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const build = await db.getBuild(parseInt(req.params.id));
+      if (!build) {
+        res.status(404).json({ error: 'Build not found' });
+        return;
+      }
+      res.json(build);
+    } catch {
+      res.status(500).json({ error: 'Failed to fetch build' });
     }
-    res.json(build);
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch build' });
-  }
-};
+  };
 
 /**
  * Handle build comparison request
  * @param db - Performance database instance
  */
-const handleCompareBuild = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const comparison = db.getBuildComparison(parseInt(req.params.id1), parseInt(req.params.id2));
-    res.json(comparison);
-  } catch {
-    res.status(500).json({ error: 'Failed to compare builds' });
-  }
-};
+const handleCompareBuild =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const comparison = await db.getBuildComparison(parseInt(req.params.id1), parseInt(req.params.id2));
+      res.json(comparison);
+    } catch {
+      res.status(500).json({ error: 'Failed to compare builds' });
+    }
+  };
 
 /**
  * Handle dashboard stats request
  * @param db - Performance database instance
  */
-const handleGetStats = (db: PerformanceDatabase) => (_: express.Request, res: express.Response): void => {
-  try {
-    const stats = getDashboardStats(db);
-    res.json(stats);
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch stats' });
-  }
-};
+const handleGetStats =
+  (db: PerformanceDatabaseService) => async (_: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const stats = await getDashboardStats(db);
+      res.json(stats);
+    } catch {
+      res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  };
 
 /**
  * Handle configuration request
  * @param config - Application configuration
  */
-const handleGetConfig = (config: unknown) => (_: express.Request, res: express.Response): void => {
+const handleGetConfig = (config: PerfAuditConfig) => (_: express.Request, res: express.Response): void => {
   res.json({
-    budgets: (config as { budgets?: unknown; }).budgets,
-    analysis: (config as { analysis?: unknown; }).analysis,
-    reports: (config as { reports?: unknown; }).reports,
+    budgets: config.budgets,
+    analysis: config.analysis,
+    reports: config.reports,
   });
 };
 
@@ -176,49 +180,52 @@ const handleGetConfig = (config: unknown) => (_: express.Request, res: express.R
  * Handle client trends request
  * @param db - Performance database instance
  */
-const handleGetClientTrends = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const query = validateTrendQuery(req.query);
-    const builds = getFilteredBuilds(db, query);
-    const clientTrends = getClientTotalTrends(builds);
-    res.json(clientTrends);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch client trends';
-    res.status(500).json({ error: `Failed to fetch client trends: ${message}` });
-  }
-};
+const handleGetClientTrends =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const query = validateTrendQuery(req.query);
+      const builds = await getFilteredBuilds(db, query);
+      const clientTrends = await getClientTotalTrends(builds);
+      res.json(clientTrends);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch client trends';
+      res.status(500).json({ error: `Failed to fetch client trends: ${message}` });
+    }
+  };
 
 /**
  * Handle server trends request
  * @param db - Performance database instance
  */
-const handleGetServerTrends = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const query = validateTrendQuery(req.query);
-    const builds = getFilteredBuilds(db, query);
-    const serverTrends = getServerTotalTrends(builds);
-    res.json(serverTrends);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch server trends';
-    res.status(500).json({ error: message });
-  }
-};
+const handleGetServerTrends =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const query = validateTrendQuery(req.query);
+      const builds = await getFilteredBuilds(db, query);
+      const serverTrends = await getServerTotalTrends(builds);
+      res.json(serverTrends);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch server trends';
+      res.status(500).json({ error: message });
+    }
+  };
 
 /**
  * Handle total trends request
  * @param db - Performance database instance
  */
-const handleGetTotalTrends = (db: PerformanceDatabase) => (req: express.Request, res: express.Response): void => {
-  try {
-    const query = validateTrendQuery(req.query);
-    const builds = getFilteredBuilds(db, query);
-    const totalTrends = getTotalBundleTrends(builds);
-    res.json(totalTrends);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch total trends';
-    res.status(500).json({ error: message });
-  }
-};
+const handleGetTotalTrends =
+  (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
+    try {
+      const query = validateTrendQuery(req.query);
+      const builds = await getFilteredBuilds(db, query);
+      const totalTrends = await getTotalBundleTrends(builds);
+      res.json(totalTrends);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch total trends';
+      res.status(500).json({ error: message });
+    }
+  };
 
 /**
  * Validate trend query parameters
@@ -281,8 +288,8 @@ const setupWebSocket = (wss: WebSocketServer): void => {
  * @param db - Performance database instance
  * @returns Dashboard statistics
  */
-const getDashboardStats = (db: PerformanceDatabase): DashboardStats => {
-  const recentBuilds = db.getRecentBuilds(30);
+const getDashboardStats = async (db: PerformanceDatabaseService): Promise<DashboardStats> => {
+  const recentBuilds = await db.getRecentBuilds(30);
 
   if (recentBuilds.length === 0) {
     return createEmptyStats();
@@ -388,11 +395,11 @@ const getBuildStatus = (build: Build): 'ok' | 'warning' | 'error' => {
  * @param param - Filter parameters
  * @returns Filtered builds array
  */
-const getFilteredBuilds = (
-  db: PerformanceDatabase,
+const getFilteredBuilds = async (
+  db: PerformanceDatabaseService,
   param: TrendQuery,
-): Build[] => {
-  let builds = db.getRecentBuilds(param.days * 4);
+): Promise<Build[]> => {
+  let builds = await db.getRecentBuilds(param.days * 4);
 
   if (param.startDate && param.endDate) {
     const start = new Date(param.startDate);
