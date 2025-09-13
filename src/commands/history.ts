@@ -66,7 +66,7 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
     Logger.error(error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   } finally {
-    db.close();
+    await db.close();
   }
 }
 

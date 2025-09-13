@@ -208,13 +208,13 @@ ${testCases.join('\n')}
       const recent = await db.getRecentBuilds(2);
 
       if (recent.length < 2) {
-        db.close();
+        await db.close();
         return null;
       }
 
       const [current, previous] = recent;
       const comparison = await db.getBuildComparison(current.id, previous.id);
-      db.close();
+      await db.close();
 
       if (comparison.bundleDiff.length === 0) return null;
 

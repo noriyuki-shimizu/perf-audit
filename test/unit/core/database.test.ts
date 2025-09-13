@@ -38,36 +38,36 @@ describe('PerformanceDatabase', () => {
 
     // Create mock repositories
     mockBuildsRepo = {
-      create: vi.fn().mockReturnValue(123),
-      findRecent: vi.fn().mockReturnValue([]),
-      findById: vi.fn().mockReturnValue(null),
-      getTrendData: vi.fn().mockReturnValue([]),
-      getComparison: vi.fn().mockReturnValue({
+      create: vi.fn().mockResolvedValue(123),
+      findRecent: vi.fn().mockResolvedValue([]),
+      findById: vi.fn().mockResolvedValue(null),
+      getTrendData: vi.fn().mockResolvedValue([]),
+      getComparison: vi.fn().mockResolvedValue({
         build1: undefined,
         build2: undefined,
         bundleDiff: [],
         metricDiff: [],
       }),
-      cleanup: vi.fn().mockReturnValue(0),
-      findByDateRange: vi.fn().mockReturnValue([]),
+      cleanup: vi.fn().mockResolvedValue(0),
+      findByDateRange: vi.fn().mockResolvedValue([]),
     };
 
     mockBundlesRepo = {
-      createMany: vi.fn(),
-      findByBuildId: vi.fn().mockReturnValue([]),
-      findLargeBundles: vi.fn().mockReturnValue([]),
+      createMany: vi.fn().mockResolvedValue(undefined),
+      findByBuildId: vi.fn().mockResolvedValue([]),
+      findLargeBundles: vi.fn().mockResolvedValue([]),
     };
 
     mockMetricsRepo = {
-      createMany: vi.fn(),
-      getMetricStats: vi.fn().mockReturnValue({ average: 0, min: 0, max: 0, count: 0 }),
-      findMetricHistory: vi.fn().mockReturnValue([]),
+      createMany: vi.fn().mockResolvedValue(undefined),
+      getMetricStats: vi.fn().mockResolvedValue({ average: 0, min: 0, max: 0, count: 0 }),
+      findMetricHistory: vi.fn().mockResolvedValue([]),
     };
 
     mockRecommendationsRepo = {
-      createMany: vi.fn(),
-      findByBuildId: vi.fn().mockReturnValue([]),
-      findFrequentRecommendations: vi.fn().mockReturnValue([]),
+      createMany: vi.fn().mockResolvedValue(undefined),
+      findByBuildId: vi.fn().mockResolvedValue([]),
+      findFrequentRecommendations: vi.fn().mockResolvedValue([]),
     };
 
     mockRepository = {
@@ -75,8 +75,8 @@ describe('PerformanceDatabase', () => {
       bundles: mockBundlesRepo,
       metrics: mockMetricsRepo,
       recommendations: mockRecommendationsRepo,
-      close: vi.fn(),
-      initSchema: vi.fn(),
+      close: vi.fn().mockResolvedValue(undefined),
+      initSchema: vi.fn().mockResolvedValue(undefined),
     };
 
     // DatabaseFactory.createRepositoryがmockRepositoryを返すように設定
@@ -173,7 +173,7 @@ describe('PerformanceDatabase', () => {
     });
 
     it('should save build with minimal data', async () => {
-      mockBuildsRepo.create = vi.fn().mockReturnValue(456);
+      mockBuildsRepo.create = vi.fn().mockResolvedValue(456);
       const db = await PerformanceDatabaseService.instance();
 
       const buildData = {
@@ -192,7 +192,7 @@ describe('PerformanceDatabase', () => {
     });
 
     it('should handle bundles without optional properties', async () => {
-      mockBuildsRepo.create = vi.fn().mockReturnValue(789);
+      mockBuildsRepo.create = vi.fn().mockResolvedValue(789);
       const db = await PerformanceDatabaseService.instance();
 
       const buildData = {
@@ -227,10 +227,10 @@ describe('PerformanceDatabase', () => {
           bundle_size: 100000,
         },
       ];
-      mockBuildsRepo.getTrendData = vi.fn().mockReturnValue(trendData);
+      mockBuildsRepo.getTrendData = vi.fn().mockResolvedValue(trendData);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getTrendData(7);
+      const result = await db.getTrendData(7);
 
       expect(mockBuildsRepo.getTrendData).toHaveBeenCalledWith(7);
       expect(result).toEqual(trendData);
@@ -267,12 +267,12 @@ describe('PerformanceDatabase', () => {
 
       const mockRecommendations = ['Optimize images'];
 
-      mockBuildsRepo.findRecent = vi.fn().mockReturnValue([mockBuild]);
-      mockBundlesRepo.findByBuildId = vi.fn().mockReturnValue(mockBundles);
-      mockRecommendationsRepo.findByBuildId = vi.fn().mockReturnValue(mockRecommendations);
+      mockBuildsRepo.findRecent = vi.fn().mockResolvedValue([mockBuild]);
+      mockBundlesRepo.findByBuildId = vi.fn().mockResolvedValue(mockBundles);
+      mockRecommendationsRepo.findByBuildId = vi.fn().mockResolvedValue(mockRecommendations);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getRecentBuilds(5, 'DESC');
+      const result = await db.getRecentBuilds(5, 'DESC');
 
       expect(mockBuildsRepo.findRecent).toHaveBeenCalledWith(5, 'DESC');
       expect(result).toHaveLength(1);
@@ -321,12 +321,12 @@ describe('PerformanceDatabase', () => {
 
       const mockRecommendations = ['Optimize images'];
 
-      mockBuildsRepo.findById = vi.fn().mockReturnValue(mockBuild);
-      mockBundlesRepo.findByBuildId = vi.fn().mockReturnValue(mockBundles);
-      mockRecommendationsRepo.findByBuildId = vi.fn().mockReturnValue(mockRecommendations);
+      mockBuildsRepo.findById = vi.fn().mockResolvedValue(mockBuild);
+      mockBundlesRepo.findByBuildId = vi.fn().mockResolvedValue(mockBundles);
+      mockRecommendationsRepo.findByBuildId = vi.fn().mockResolvedValue(mockRecommendations);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getBuild(1);
+      const result = await db.getBuild(1);
 
       expect(mockBuildsRepo.findById).toHaveBeenCalledWith(1);
       expect(result).toEqual({
@@ -337,10 +337,10 @@ describe('PerformanceDatabase', () => {
     });
 
     it('should return null for non-existent build', async () => {
-      mockBuildsRepo.findById = vi.fn().mockReturnValue(null);
+      mockBuildsRepo.findById = vi.fn().mockResolvedValue(undefined);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getBuild(999);
+      const result = await db.getBuild(999);
 
       expect(mockBuildsRepo.findById).toHaveBeenCalledWith(999);
       expect(result).toBeNull();
@@ -368,10 +368,10 @@ describe('PerformanceDatabase', () => {
         metricDiff: [],
       };
 
-      mockBuildsRepo.getComparison = vi.fn().mockReturnValue(comparisonData);
+      mockBuildsRepo.getComparison = vi.fn().mockResolvedValue(comparisonData);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getBuildComparison(1, 2);
+      const result = await db.getBuildComparison(1, 2);
 
       expect(mockBuildsRepo.getComparison).toHaveBeenCalledWith(1, 2);
       expect(result).toEqual(comparisonData);
@@ -385,10 +385,10 @@ describe('PerformanceDatabase', () => {
         metricDiff: [],
       };
 
-      mockBuildsRepo.getComparison = vi.fn().mockReturnValue(emptyComparison);
+      mockBuildsRepo.getComparison = vi.fn().mockResolvedValue(emptyComparison);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.getBuildComparison(1, 2);
+      const result = await db.getBuildComparison(1, 2);
 
       expect(result).toEqual(emptyComparison);
     });
@@ -396,20 +396,20 @@ describe('PerformanceDatabase', () => {
 
   describe('cleanup', () => {
     it('should delete old builds', async () => {
-      mockBuildsRepo.cleanup = vi.fn().mockReturnValue(5);
+      mockBuildsRepo.cleanup = vi.fn().mockResolvedValue(5);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.cleanup(30);
+      const result = await db.cleanup(30);
 
       expect(mockBuildsRepo.cleanup).toHaveBeenCalledWith(30);
       expect(result).toBe(5);
     });
 
     it('should return 0 when no builds deleted', async () => {
-      mockBuildsRepo.cleanup = vi.fn().mockReturnValue(0);
+      mockBuildsRepo.cleanup = vi.fn().mockResolvedValue(0);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = db.cleanup(7);
+      const result = await db.cleanup(7);
 
       expect(result).toBe(0);
     });
@@ -418,7 +418,7 @@ describe('PerformanceDatabase', () => {
   describe('close', () => {
     it('should close database connection', async () => {
       const db = await PerformanceDatabaseService.instance();
-      db.close();
+      await db.close();
 
       expect(mockRepository.close).toHaveBeenCalled();
     });

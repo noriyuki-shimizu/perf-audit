@@ -88,7 +88,7 @@ export class SqliteConnection implements DatabaseConnection {
 
   async close(): Promise<void> {
     try {
-      this.db.close();
+      await this.db.close();
     } catch (error) {
       throw new Error(`Failed to close database: ${error instanceof Error ? error.message : String(error)}`);
     }

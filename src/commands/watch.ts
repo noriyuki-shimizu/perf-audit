@@ -282,9 +282,9 @@ const handleWatcherError = (error: unknown): void => {
  * @param db - Performance database instance
  */
 const setupGracefulShutdown = (db: PerformanceDatabaseService): void => {
-  process.on('SIGINT', () => {
+  process.on('SIGINT', async () => {
     Logger.info('Stopping watch mode...');
-    db.close();
+    await db.close();
     process.exit(0);
   });
 };
@@ -407,8 +407,8 @@ const analyzeServerBundles = async (config: PerfAuditConfig): Promise<BundleInfo
  * @param db - Performance database instance
  * @param result - Audit result
  */
-const saveBuildToDatabase = (db: PerformanceDatabaseService, result: AuditResult): void => {
-  db.saveBuild({
+const saveBuildToDatabase = async (db: PerformanceDatabaseService, result: AuditResult): Promise<void> => {
+  await db.saveBuild({
     timestamp: result.timestamp,
     bundles: result.bundles,
     recommendations: result.recommendations,

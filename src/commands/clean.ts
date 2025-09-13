@@ -143,7 +143,7 @@ const cleanCacheDirectory = (): void => {
 const cleanOldDatabaseRecords = async (days: number): Promise<number> => {
   const db = await PerformanceDatabaseService.instance();
   const deletedBuilds = await db.cleanup(days);
-  db.close();
+  await db.close();
   return deletedBuilds;
 };
 

@@ -26,12 +26,20 @@ vi.mock('../../../src/core/bundle-analyzer.ts', () => ({
 
 vi.mock('../../../src/core/database/index.ts', () => ({
   PerformanceDatabaseService: {
-    instance: vi.fn().mockReturnValue({
+    instance: vi.fn().mockResolvedValue({
       saveBuildAsync: vi.fn().mockResolvedValue('build-123'),
       closeAsync: vi.fn().mockResolvedValue(undefined),
     }),
   },
 }));
+
+vi.mock('../../../src/utils/command-helpers.ts', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    saveBuildData: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
 vi.mock('../../../src/core/plugin-system.ts', () => ({
   PluginManager: vi.fn().mockImplementation(() => ({
@@ -237,10 +245,8 @@ describe('analyzeCommand', () => {
 
     await analyzeCommand(options);
 
-    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
-    const mockInstance = vi.mocked(PerformanceDatabaseService.instance)();
-    expect(mockInstance.saveBuildAsync).toHaveBeenCalled();
-    expect(mockInstance.closeAsync).toHaveBeenCalled();
+    const { saveBuildData } = await import('../../../src/utils/command-helpers.ts');
+    expect(vi.mocked(saveBuildData)).toHaveBeenCalled();
   });
 
   it('should execute plugin hooks in correct order', async () => {
