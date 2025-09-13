@@ -6,44 +6,46 @@ import type { HistoryOptions } from '../../../src/types/commands.ts';
 vi.setConfig({ testTimeout: 100 });
 
 // Mock modules
-vi.mock('../../../src/core/database.ts', () => ({
-  PerformanceDatabase: vi.fn().mockImplementation(() => ({
-    getTrendData: vi.fn().mockReturnValue([
-      {
-        date: '2023-01-01',
-        totalSize: 100000,
-        gzipSize: 30000,
-        performanceScore: 85,
-        fcp: 1000,
-        lcp: 2000,
-        cls: 0.1,
-        tti: 3000,
-      },
-      {
-        date: '2023-01-02',
-        totalSize: 110000,
-        gzipSize: 32000,
-        performanceScore: 82,
-        fcp: 1100,
-        lcp: 2200,
-        cls: 0.12,
-        tti: 3200,
-      },
-    ]),
-    getRecentBuilds: vi.fn().mockReturnValue([
-      {
-        timestamp: '2023-01-02T12:00:00.000Z',
-        branch: 'main',
-        device: 'desktop',
-      },
-      {
-        timestamp: '2023-01-01T12:00:00.000Z',
-        branch: 'feature/test',
-        device: 'mobile',
-      },
-    ]),
-    close: vi.fn(),
-  })),
+vi.mock('../../../src/core/database/index.ts', () => ({
+  PerformanceDatabaseService: {
+    instance: vi.fn().mockReturnValue({
+      getTrendData: vi.fn().mockReturnValue([
+        {
+          date: '2023-01-01',
+          totalSize: 100000,
+          gzipSize: 30000,
+          performanceScore: 85,
+          fcp: 1000,
+          lcp: 2000,
+          cls: 0.1,
+          tti: 3000,
+        },
+        {
+          date: '2023-01-02',
+          totalSize: 110000,
+          gzipSize: 32000,
+          performanceScore: 82,
+          fcp: 1100,
+          lcp: 2200,
+          cls: 0.12,
+          tti: 3200,
+        },
+      ]),
+      getRecentBuilds: vi.fn().mockReturnValue([
+        {
+          timestamp: '2023-01-02T12:00:00.000Z',
+          branch: 'main',
+          device: 'desktop',
+        },
+        {
+          timestamp: '2023-01-01T12:00:00.000Z',
+          branch: 'feature/test',
+          device: 'mobile',
+        },
+      ]),
+      close: vi.fn(),
+    }),
+  },
 }));
 
 vi.mock('../../../src/utils/logger.ts', () => ({
@@ -137,12 +139,12 @@ describe('historyCommand', () => {
   });
 
   it('should warn when no historical data is found', async () => {
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() => ({
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([]),
       getRecentBuilds: vi.fn().mockReturnValue([]),
       close: vi.fn(),
-    }));
+    } as unknown as ReturnType<typeof PerformanceDatabaseService.instance>);
 
     const options: HistoryOptions = {
       days: 30,
@@ -231,14 +233,14 @@ describe('historyCommand', () => {
 
     historyCommand(options);
 
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    const mockInstance = PerformanceDatabase.mock.results[0]?.value;
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    const mockInstance = vi.mocked(PerformanceDatabaseService.instance)();
     expect(mockInstance.close).toHaveBeenCalled();
   });
 
   it('should handle missing optional data gracefully', async () => {
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() => ({
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([
         {
           date: '2023-01-01',
@@ -253,7 +255,7 @@ describe('historyCommand', () => {
         },
       ]),
       close: vi.fn(),
-    }));
+    } as unknown as ReturnType<typeof PerformanceDatabaseService.instance>);
 
     const options: HistoryOptions = {
       days: 30,
@@ -268,8 +270,8 @@ describe('historyCommand', () => {
   });
 
   it('should not display Core Web Vitals section if no FCP data', async () => {
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() => ({
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([
         {
           date: '2023-01-01',
@@ -279,7 +281,7 @@ describe('historyCommand', () => {
       ]),
       getRecentBuilds: vi.fn().mockReturnValue([]),
       close: vi.fn(),
-    }));
+    } as unknown as ReturnType<typeof PerformanceDatabaseService.instance>);
 
     const options: HistoryOptions = {
       days: 30,
@@ -294,8 +296,8 @@ describe('historyCommand', () => {
   });
 
   it('should limit recent builds display to 5', async () => {
-    const PerformanceDatabase = vi.mocked(await import('../../../src/core/database.ts')).PerformanceDatabase;
-    PerformanceDatabase.mockImplementationOnce(() => ({
+    const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
+    vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([
         { date: '2023-01-01', totalSize: 100000 },
       ]),
@@ -305,7 +307,7 @@ describe('historyCommand', () => {
         })),
       ),
       close: vi.fn(),
-    }));
+    } as unknown as ReturnType<typeof PerformanceDatabaseService.instance>);
 
     const options: HistoryOptions = {
       days: 30,

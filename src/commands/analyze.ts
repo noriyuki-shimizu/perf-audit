@@ -234,7 +234,7 @@ const generateConsoleReport = async (
  */
 const outputCIResults = async (result: AuditResult): Promise<void> => {
   const ciContext = CIIntegration.detectCIEnvironment();
-  CIIntegration.outputCIAnnotations(result, ciContext);
+  await CIIntegration.outputCIAnnotations(result, ciContext);
 };
 
 /**

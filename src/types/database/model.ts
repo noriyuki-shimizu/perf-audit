@@ -1,3 +1,5 @@
+import { BundleInfo, PerformanceMetrics } from '../config.ts';
+
 /** ビルドレコード */
 export interface BuildRecord {
   id: number;
@@ -6,6 +8,18 @@ export interface BuildRecord {
   commitHash: string;
   url?: string;
   device?: string;
+}
+
+/** 登録用ビルドレコード */
+export interface NewBuildRecord {
+  timestamp: string;
+  branch?: string;
+  commitHash?: string;
+  url?: string;
+  device?: string;
+  bundles: BundleInfo[];
+  metrics?: PerformanceMetrics;
+  recommendations: string[];
 }
 
 /** ビルド、バンドル、メトリクスの結合レコード */

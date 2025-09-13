@@ -38,7 +38,7 @@ export const budgetCommand = async (options: BudgetOptions): Promise<void> => {
     succeedSpinner(spinner, 'Budget check completed');
 
     await generateBudgetReport(result, options, config);
-    CIIntegration.outputCIAnnotations(result, ciContext);
+    await CIIntegration.outputCIAnnotations(result, ciContext);
 
     exitWithBudgetStatus(result.budgetStatus);
   } catch (error) {

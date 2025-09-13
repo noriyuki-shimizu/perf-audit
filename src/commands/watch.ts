@@ -9,7 +9,7 @@ import {
   WATCHER_STABILITY_THRESHOLD,
 } from '../constants/index.ts';
 import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import { NotificationService } from '../core/notification-service.ts';
 import type { BundleChange, PerformanceComparison, WatchOptions, WatchState } from '../types/commands.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
@@ -27,7 +27,7 @@ export const watchCommand = async (options: WatchOptions = {}): Promise<void> =>
 
   try {
     const config = await loadConfig();
-    const db = new PerformanceDatabase();
+    const db = await PerformanceDatabaseService.instance();
     const notificationService = createNotificationService(config, options.notify);
 
     const watchState = initializeWatchState();
@@ -72,7 +72,7 @@ const initializeWatchState = (): WatchState => ({
  */
 const performInitialAnalysis = async (
   config: PerfAuditConfig,
-  db: PerformanceDatabase,
+  db: PerformanceDatabaseService,
   silent: boolean = false,
   watchState: WatchState,
 ): Promise<void> => {
@@ -96,7 +96,7 @@ const performInitialAnalysis = async (
  */
 const setupFileWatcher = async (
   config: PerfAuditConfig,
-  db: PerformanceDatabase,
+  db: PerformanceDatabaseService,
   notificationService: NotificationService | null,
   options: WatchOptions,
   watchState: WatchState,
@@ -156,7 +156,7 @@ const createFileWatcher = (watchPaths: string[]): FSWatcher => {
 const handleFileChange = async (
   filePath: string,
   config: PerfAuditConfig,
-  db: PerformanceDatabase,
+  db: PerformanceDatabaseService,
   notificationService: NotificationService | null,
   options: WatchOptions,
   watchState: WatchState,
@@ -281,10 +281,10 @@ const handleWatcherError = (error: unknown): void => {
  * Setup graceful shutdown handlers
  * @param db - Performance database instance
  */
-const setupGracefulShutdown = (db: PerformanceDatabase): void => {
-  process.on('SIGINT', () => {
+const setupGracefulShutdown = (db: PerformanceDatabaseService): void => {
+  process.on('SIGINT', async () => {
     Logger.info('Stopping watch mode...');
-    db.close();
+    await db.close();
     process.exit(0);
   });
 };
@@ -315,7 +315,7 @@ const handleWatchError = (error: unknown): void => {
  */
 const performAnalysis = async (
   config: PerfAuditConfig,
-  db: PerformanceDatabase,
+  db: PerformanceDatabaseService,
   silent: boolean = false,
 ): Promise<AuditResult> => {
   const spinner = createAnalysisSpinner(silent);
@@ -407,8 +407,8 @@ const analyzeServerBundles = async (config: PerfAuditConfig): Promise<BundleInfo
  * @param db - Performance database instance
  * @param result - Audit result
  */
-const saveBuildToDatabase = (db: PerformanceDatabase, result: AuditResult): void => {
-  db.saveBuild({
+const saveBuildToDatabase = async (db: PerformanceDatabaseService, result: AuditResult): Promise<void> => {
+  await db.saveBuild({
     timestamp: result.timestamp,
     bundles: result.bundles,
     recommendations: result.recommendations,

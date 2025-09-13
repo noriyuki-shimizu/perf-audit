@@ -1,5 +1,5 @@
 import ora, { type Ora } from 'ora';
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import { PluginManager } from '../core/plugin-system.ts';
 import type { AuditResult, PerfAuditConfig, PerformanceMetrics } from '../types/config.ts';
 import { CIIntegration } from './ci-integration.ts';
@@ -54,9 +54,9 @@ export const saveBuildData = async (
 ): Promise<void> => {
   try {
     const ciContext = CIIntegration.detectCIEnvironment();
-    const db = new PerformanceDatabase();
+    const db = await PerformanceDatabaseService.instance();
 
-    const buildId = db.saveBuild({
+    const buildId = await db.saveBuild({
       timestamp: result.timestamp,
       branch: ciContext.branch,
       commitHash: ciContext.commitHash,
@@ -67,10 +67,11 @@ export const saveBuildData = async (
       recommendations: result.recommendations,
     });
 
-    db.close();
+    await db.close();
     Logger.debug(`Build saved with ID: ${buildId}`);
-  } catch {
+  } catch (error) {
     Logger.warn('Failed to save build to database');
+    Logger.debug(`Database error: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 

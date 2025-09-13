@@ -9,7 +9,7 @@ import {
   MILLISECONDS_PER_DAY,
   REPORT_EXTENSIONS,
 } from '../constants/index.ts';
-import { PerformanceDatabase } from '../core/database.ts';
+import { PerformanceDatabaseService } from '../core/database/index.ts';
 import type { CleanOptions } from '../types/commands.ts';
 import type { PerfAuditConfig } from '../types/config.ts';
 import { loadConfig } from '../utils/config.ts';
@@ -140,10 +140,10 @@ const cleanCacheDirectory = (): void => {
  * @param days - Retention period in days
  * @returns Number of deleted builds
  */
-const cleanOldDatabaseRecords = (days: number): number => {
-  const db = new PerformanceDatabase();
-  const deletedBuilds = db.cleanup(days);
-  db.close();
+const cleanOldDatabaseRecords = async (days: number): Promise<number> => {
+  const db = await PerformanceDatabaseService.instance();
+  const deletedBuilds = await db.cleanup(days);
+  await db.close();
   return deletedBuilds;
 };
 
