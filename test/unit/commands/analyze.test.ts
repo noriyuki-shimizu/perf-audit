@@ -33,7 +33,7 @@ vi.mock('../../../src/core/database/index.ts', () => ({
   },
 }));
 
-vi.mock('../../../src/utils/command-helpers.ts', async (importOriginal) => {
+vi.mock('../../../src/utils/command-helpers.ts', async importOriginal => {
   const actual = await importOriginal();
   return {
     ...actual,
