@@ -113,13 +113,12 @@ perf-audit history [オプション]
 オプション:
 
 - `--days <n>`: 表示する日数 [デフォルト: 30]
-- `--metric <type>`: 特定のメトリクスのトレンドを表示
 - `--format <type>`: 出力形式 (json, console) [デフォルト: console]
 
 例:
 
 ```bash
-perf-audit history --days 14 --metric size
+perf-audit history --days 14 --format json
 ```
 
 ### 6. リアルタイム監視

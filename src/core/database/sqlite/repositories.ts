@@ -37,17 +37,17 @@ export class SqliteBuildRepository implements BuildRepository {
     return result.lastInsertRowid!;
   }
 
-  async findById(id: number): Promise<BuildRecord | undefined> {
+  findById(id: number): Promise<BuildRecord | undefined> {
     const query = `
       SELECT id, timestamp, branch, commit_hash as commitHash, url, device
       FROM builds
       WHERE id = ?
     `;
 
-    return await this.db.get<BuildRecord>(query, [id]);
+    return this.db.get<BuildRecord>(query, [id]);
   }
 
-  async findRecent(limit = 10, orderBy: 'ASC' | 'DESC' = 'DESC'): Promise<BuildRecord[]> {
+  findRecent(limit = 10, orderBy: 'ASC' | 'DESC' = 'DESC'): Promise<BuildRecord[]> {
     const query = `
       SELECT id, timestamp, branch, commit_hash as commitHash, url, device
       FROM builds
@@ -55,26 +55,31 @@ export class SqliteBuildRepository implements BuildRepository {
       LIMIT ?
     `;
 
-    return await this.db.all<BuildRecord>(query, [limit]);
+    return this.db.all<BuildRecord>(query, [limit]);
   }
 
-  async findByDateRange(startDate: string, endDate: string): Promise<BuildRecord[]> {
+  findByDateRange(startDate: string, endDate: string): Promise<BuildRecord[]> {
     const query = `
       SELECT id, timestamp, branch, commit_hash as commitHash, url, device
       FROM builds
-      WHERE timestamp BETWEEN ? AND ?
+      WHERE datetime(timestamp) BETWEEN datetime(?) AND datetime(?)
       ORDER BY timestamp DESC
     `;
 
-    return await this.db.all<BuildRecord>(query, [startDate, endDate]);
+    return this.db.all<BuildRecord>(query, [startDate, endDate]);
   }
 
-  async getTrendData(days = 30): Promise<TrendData[]> {
+  getTrendData(days = 30): Promise<TrendData[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString();
+
     const query = `
       SELECT
         DATE(b.timestamp) as date,
         SUM(bu.size) as totalSize,
         SUM(bu.gzip_size) as gzipSize,
+        bu.type as type,
         MAX(CASE WHEN m.metric_name = 'performance_score' THEN m.value END) as performanceScore,
         MAX(CASE WHEN m.metric_name = 'fcp' THEN m.value END) as fcp,
         MAX(CASE WHEN m.metric_name = 'lcp' THEN m.value END) as lcp,
@@ -83,21 +88,44 @@ export class SqliteBuildRepository implements BuildRepository {
       FROM builds b
       LEFT JOIN bundles bu ON b.id = bu.build_id
       LEFT JOIN metrics m ON b.id = m.build_id
-      WHERE b.timestamp > datetime('now', '-${days} days')
-      GROUP BY DATE(b.timestamp)
+      WHERE datetime(b.timestamp) > datetime(?)
+      GROUP BY DATE(b.timestamp), type
       ORDER BY date ASC
     `;
 
-    return await this.db.all<TrendData>(query);
+    return this.db.all<TrendData>(query, [cutoffDateStr]);
   }
 
   async cleanup(retentionDays: number): Promise<number> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+    const cutoffDateStr = cutoffDate.toISOString();
+
+    await this.db.transaction(async () => {
+      const buildIdsQuery = `
+        SELECT id FROM builds
+        WHERE datetime(timestamp) < datetime(?)
+      `;
+
+      const buildIds = await this.db.all<{ id: number; }>(buildIdsQuery, [cutoffDateStr]);
+
+      if (buildIds.length === 0) {
+        return;
+      }
+
+      const placeholders = buildIds.map(() => '?').join(',');
+
+      await this.db.run(`DELETE FROM recommendations WHERE build_id IN (${placeholders})`, buildIds.map(b => b.id));
+      await this.db.run(`DELETE FROM metrics WHERE build_id IN (${placeholders})`, buildIds.map(b => b.id));
+      await this.db.run(`DELETE FROM bundles WHERE build_id IN (${placeholders})`, buildIds.map(b => b.id));
+    });
+
     const query = `
       DELETE FROM builds
-      WHERE timestamp < datetime('now', '-${retentionDays} days')
+      WHERE datetime(timestamp) < datetime(?)
     `;
 
-    const result = await this.db.run(query);
+    const result = await this.db.run(query, [cutoffDateStr]);
     return result.changes;
   }
 
@@ -228,7 +256,7 @@ export class SqliteBundleRepository implements BundleRepository {
     });
   }
 
-  async findByBuildId(buildId: number): Promise<BundleInfo[]> {
+  findByBuildId(buildId: number): Promise<BundleInfo[]> {
     const query = `
       SELECT name, size, gzip_size as gzipSize, delta, status, type
       FROM bundles
@@ -236,10 +264,10 @@ export class SqliteBundleRepository implements BundleRepository {
       ORDER BY size DESC
     `;
 
-    return await this.db.all<BundleInfo>(query, [buildId]);
+    return this.db.all<BundleInfo>(query, [buildId]);
   }
 
-  async findByName(name: string, limit = 10): Promise<(BundleInfo & { buildId: number; })[]> {
+  findByName(name: string, limit = 10): Promise<(BundleInfo & { buildId: number; })[]> {
     const query = `
       SELECT build_id as buildId, name, size, gzip_size as gzipSize, delta, status, type
       FROM bundles
@@ -248,10 +276,10 @@ export class SqliteBundleRepository implements BundleRepository {
       LIMIT ?
     `;
 
-    return await this.db.all<BundleInfo & { buildId: number; }>(query, [`%${name}%`, limit]);
+    return this.db.all<BundleInfo & { buildId: number; }>(query, [`%${name}%`, limit]);
   }
 
-  async findLargeBundles(minSize: number, limit = 10): Promise<(BundleInfo & { buildId: number; })[]> {
+  findLargeBundles(minSize: number, limit = 10): Promise<(BundleInfo & { buildId: number; })[]> {
     const query = `
       SELECT build_id as buildId, name, size, gzip_size as gzipSize, delta, status, type
       FROM bundles
@@ -260,7 +288,7 @@ export class SqliteBundleRepository implements BundleRepository {
       LIMIT ?
     `;
 
-    return await this.db.all<BundleInfo & { buildId: number; }>(query, [minSize, limit]);
+    return this.db.all<BundleInfo & { buildId: number; }>(query, [minSize, limit]);
   }
 }
 
@@ -288,7 +316,7 @@ export class SqliteMetricRepository implements MetricRepository {
     });
   }
 
-  async findByBuildId(buildId: number): Promise<Array<{ metricName: string; value: number; }>> {
+  findByBuildId(buildId: number): Promise<Array<{ metricName: string; value: number; }>> {
     const query = `
       SELECT metric_name as metricName, value
       FROM metrics
@@ -296,23 +324,27 @@ export class SqliteMetricRepository implements MetricRepository {
       ORDER BY metric_name
     `;
 
-    return await this.db.all<{ metricName: string; value: number; }>(query, [buildId]);
+    return this.db.all<{ metricName: string; value: number; }>(query, [buildId]);
   }
 
-  async findMetricHistory(
+  findMetricHistory(
     metricName: string,
     days = 30,
   ): Promise<Array<{ buildId: number; value: number; timestamp: string; }>> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString();
+
     const query = `
       SELECT m.build_id as buildId, m.value, b.timestamp
       FROM metrics m
       JOIN builds b ON m.build_id = b.id
       WHERE m.metric_name = ?
-        AND b.timestamp > datetime('now', '-${days} days')
+        AND b.timestamp > ?
       ORDER BY b.timestamp DESC
     `;
 
-    return await this.db.all<{ buildId: number; value: number; timestamp: string; }>(query, [metricName]);
+    return this.db.all<{ buildId: number; value: number; timestamp: string; }>(query, [metricName, cutoffDateStr]);
   }
 
   async getMetricStats(metricName: string, days = 30): Promise<{
@@ -321,6 +353,10 @@ export class SqliteMetricRepository implements MetricRepository {
     max: number;
     count: number;
   }> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString();
+
     const query = `
       SELECT
         AVG(m.value) as average,
@@ -330,7 +366,7 @@ export class SqliteMetricRepository implements MetricRepository {
       FROM metrics m
       JOIN builds b ON m.build_id = b.id
       WHERE m.metric_name = ?
-        AND b.timestamp > datetime('now', '-${days} days')
+        AND b.timestamp > ?
     `;
 
     const result = await this.db.get<{
@@ -338,7 +374,7 @@ export class SqliteMetricRepository implements MetricRepository {
       min: number;
       max: number;
       count: number;
-    }>(query, [metricName]);
+    }>(query, [metricName, cutoffDateStr]);
 
     return result || { average: 0, min: 0, max: 0, count: 0 };
   }
@@ -380,7 +416,7 @@ export class SqliteRecommendationRepository implements RecommendationRepository 
     return results.map(row => row.message);
   }
 
-  async findByType(type: string, limit = 10): Promise<Array<{ buildId: number; message: string; impact: string; }>> {
+  findByType(type: string, limit = 10): Promise<Array<{ buildId: number; message: string; impact: string; }>> {
     const query = `
       SELECT build_id as buildId, message, impact
       FROM recommendations
@@ -389,21 +425,25 @@ export class SqliteRecommendationRepository implements RecommendationRepository 
       LIMIT ?
     `;
 
-    return await this.db.all<{ buildId: number; message: string; impact: string; }>(query, [type, limit]);
+    return this.db.all<{ buildId: number; message: string; impact: string; }>(query, [type, limit]);
   }
 
-  async findFrequentRecommendations(days = 30, limit = 10): Promise<Array<{ message: string; count: number; }>> {
+  findFrequentRecommendations(days = 30, limit = 10): Promise<Array<{ message: string; count: number; }>> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString();
+
     const query = `
       SELECT r.message, COUNT(*) as count
       FROM recommendations r
       JOIN builds b ON r.build_id = b.id
-      WHERE b.timestamp > datetime('now', '-${days} days')
+      WHERE b.timestamp > ?
       GROUP BY r.message
       ORDER BY count DESC
       LIMIT ?
     `;
 
-    return await this.db.all<{ message: string; count: number; }>(query, [limit]);
+    return this.db.all<{ message: string; count: number; }>(query, [cutoffDateStr, limit]);
   }
 }
 
@@ -473,6 +513,15 @@ export class SqliteRepository implements Repository {
       CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics (metric_name);
       CREATE INDEX IF NOT EXISTS idx_recommendations_build_id ON recommendations (build_id);
       CREATE INDEX IF NOT EXISTS idx_recommendations_type ON recommendations (type);
+    `);
+  }
+
+  async cleanAll(): Promise<void> {
+    await this.db.exec(`
+      DELETE FROM builds;
+      DELETE FROM bundles;
+      DELETE FROM metrics;
+      DELETE FROM recommendations;
     `);
   }
 

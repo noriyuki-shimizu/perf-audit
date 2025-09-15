@@ -19,6 +19,7 @@ vi.mock('../../../src/core/database/index.ts', () => ({
           lcp: 2000,
           cls: 0.1,
           tti: 3000,
+          type: 'client',
         },
         {
           date: '2023-01-02',
@@ -29,6 +30,7 @@ vi.mock('../../../src/core/database/index.ts', () => ({
           lcp: 2200,
           cls: 0.12,
           tti: 3200,
+          type: 'client',
         },
       ]),
       getRecentBuilds: vi.fn().mockReturnValue([
@@ -56,6 +58,7 @@ vi.mock('../../../src/utils/logger.ts', () => ({
     warn: vi.fn(),
     error: vi.fn(),
     json: vi.fn(),
+    raw: vi.fn(),
   },
 }));
 
@@ -74,13 +77,13 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.title).toHaveBeenCalledWith('Performance History (Last 30 days)');
     expect(Logger.section).toHaveBeenCalledWith('Bundle Size Trend');
-    expect(Logger.section).toHaveBeenCalledWith('Core Web Vitals Trend');
     expect(Logger.section).toHaveBeenCalledWith('Recent Builds');
+    expect(Logger.section).toHaveBeenCalledWith('Lighthouse Score (Core Web Vitals Trend)');
     expect(Logger.section).toHaveBeenCalledWith('Summary');
   });
 
@@ -93,7 +96,7 @@ describe('historyCommand', () => {
       format,
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     if (expectJson) {
@@ -101,41 +104,6 @@ describe('historyCommand', () => {
     } else {
       expect(Logger.title).toHaveBeenCalled();
     }
-  });
-
-  it('should display specific metric when metric option is provided', async () => {
-    const options: HistoryOptions = {
-      days: 30,
-      format: 'console',
-      metric: 'size',
-    };
-
-    historyCommand(options);
-
-    const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
-    expect(Logger.section).toHaveBeenCalledWith('SIZE Trend');
-  });
-
-  it.each([
-    { metric: 'size', expectedValue: '98KB' },
-    { metric: 'bundle-size', expectedValue: '98KB' },
-    { metric: 'gzip-size', expectedValue: '29KB' },
-    { metric: 'performance', expectedValue: '85/100' },
-    { metric: 'fcp', expectedValue: '1000ms' },
-    { metric: 'lcp', expectedValue: '2000ms' },
-    { metric: 'cls', expectedValue: '0.1' },
-    { metric: 'tti', expectedValue: '3000ms' },
-  ])('should display specific metric $metric correctly', async ({ metric }) => {
-    const options: HistoryOptions = {
-      days: 30,
-      format: 'console',
-      metric,
-    };
-
-    historyCommand(options);
-
-    const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
-    expect(Logger.section).toHaveBeenCalledWith(`${metric.toUpperCase()} Trend`);
   });
 
   it('should warn when no historical data is found', async () => {
@@ -151,7 +119,7 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.warn).toHaveBeenCalledWith('No historical data found. Run some audits first!');
@@ -163,7 +131,7 @@ describe('historyCommand', () => {
       format: 'json',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.json).toHaveBeenCalledWith(
@@ -171,7 +139,12 @@ describe('historyCommand', () => {
         period: '30 days',
         trendData: expect.any(Array),
         recentBuilds: expect.any(Array),
-        summary: expect.objectContaining({
+        clientSummary: expect.objectContaining({
+          avgBundleSize: expect.any(Number),
+          sizeTrend: expect.any(Number),
+          avgPerformanceScore: expect.any(Number),
+        }),
+        serverSummary: expect.objectContaining({
           avgBundleSize: expect.any(Number),
           sizeTrend: expect.any(Number),
           avgPerformanceScore: expect.any(Number),
@@ -186,7 +159,7 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.info).toHaveBeenCalledWith(expect.stringContaining('(main)'));
@@ -201,13 +174,13 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.info).toHaveBeenCalledWith('Total builds: 2');
     expect(Logger.info).toHaveBeenCalledWith(expect.stringContaining('Avg bundle size:'));
     expect(Logger.info).toHaveBeenCalledWith(expect.stringContaining('Size trend:'));
-    expect(Logger.info).toHaveBeenCalledWith(expect.stringContaining('Avg performance:'));
+    expect(Logger.info).toHaveBeenCalledWith('Avg performance: 83.5/100');
   });
 
   it('should display size trend with correct emoji', async () => {
@@ -216,7 +189,7 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     // Check that size trend information is displayed
@@ -231,7 +204,7 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
     const mockInstance = vi.mocked(PerformanceDatabaseService.instance)();
@@ -245,6 +218,7 @@ describe('historyCommand', () => {
         {
           date: '2023-01-01',
           totalSize: 100000,
+          type: 'client',
           // Missing optional fields
         },
       ]),
@@ -260,23 +234,26 @@ describe('historyCommand', () => {
     const options: HistoryOptions = {
       days: 30,
       format: 'console',
-      metric: 'gzip-size',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
-    expect(Logger.info).toHaveBeenCalledWith('2023-01-01: N/A');
+    // Check that the date is displayed with the size value
+    const loggerInfo = Logger.info as ReturnType<typeof vi.fn>;
+    const infoCalls = loggerInfo.mock.calls.map((call: [string]) => call[0]);
+    expect(infoCalls).toContain('2023-01-01: 98KB');
   });
 
-  it('should not display Core Web Vitals section if no FCP data', async () => {
+  it('should not display Lighthouse Score data if no performance score', async () => {
     const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
     vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([
         {
           date: '2023-01-01',
           totalSize: 100000,
-          // No Core Web Vitals data
+          type: 'client',
+          // No performance score data
         },
       ]),
       getRecentBuilds: vi.fn().mockReturnValue([]),
@@ -288,18 +265,17 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
-    const sectionCalls = Logger.section.mock.calls.map(call => call[0]);
-    expect(sectionCalls).not.toContain('Core Web Vitals Trend');
+    expect(Logger.warn).toHaveBeenCalledWith('No Lighthouse score data found.');
   });
 
-  it('should limit recent builds display to 5', async () => {
+  it('should display up to 10 recent builds', async () => {
     const { PerformanceDatabaseService } = await import('../../../src/core/database/index.ts');
     vi.mocked(PerformanceDatabaseService.instance).mockReturnValueOnce({
       getTrendData: vi.fn().mockReturnValue([
-        { date: '2023-01-01', totalSize: 100000 },
+        { date: '2023-01-01', totalSize: 100000, type: 'client' },
       ]),
       getRecentBuilds: vi.fn().mockReturnValue(
         Array.from({ length: 10 }, (_, i) => ({
@@ -314,10 +290,13 @@ describe('historyCommand', () => {
       format: 'console',
     };
 
-    historyCommand(options);
+    await historyCommand(options);
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
-    const infoCalls = Logger.info.mock.calls.filter(call => call[0].match(/^\d+\. \d+\/\d+\/\d+ \d+:\d+:\d+/));
-    expect(infoCalls.length).toBe(5);
+    const loggerInfo = Logger.info as ReturnType<typeof vi.fn>;
+    const infoCalls = loggerInfo.mock.calls.filter((call: [string]) =>
+      call[0].match(/^\d+\. \d+\/\d+\/\d+ \d+:\d+:\d+/)
+    );
+    expect(infoCalls.length).toBe(10);
   });
 });

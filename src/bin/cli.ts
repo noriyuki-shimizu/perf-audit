@@ -79,12 +79,10 @@ program
   .command('history')
   .description('Show performance history and trends')
   .option('--days <n>', 'Number of days to show', DEFAULT_CLI_OPTIONS.HISTORY_DAYS)
-  .option('--metric <type>', 'Show specific metric trend')
   .option('--format <type>', 'Output format (json, console)', DEFAULT_CLI_OPTIONS.OUTPUT_FORMAT)
   .action(options => {
     historyCommand({
       days: parseInt(options.days),
-      metric: options.metric,
       format: options.format,
     });
   });

@@ -62,7 +62,7 @@ export class SqliteConnection implements DatabaseConnection {
   async transaction<T>(callback: () => Promise<T> | T): Promise<T> {
     if (this.inTransaction) {
       // 既にトランザクション内の場合はネストせずに実行
-      return await callback();
+      return callback();
     }
 
     const txn = this.db.transaction(callback);

@@ -69,8 +69,9 @@ const DEFAULT_CONFIG: PerfAuditConfig = {
  * @returns Promise that resolves to the loaded configuration object
  */
 export async function loadConfig(configPath?: string): Promise<PerfAuditConfig> {
-  const defaultConfigPath = path.join(process.cwd(), DEFAULT_CONFIG_FILE);
-  const finalConfigPath = configPath || defaultConfigPath;
+  const configFilePath = process.env.PERF_AUDIT_CONFIG_FILE ?? DEFAULT_CONFIG_FILE;
+  const defaultConfigPath = path.join(process.cwd(), configFilePath);
+  const finalConfigPath = configPath ?? defaultConfigPath;
 
   try {
     if (fs.existsSync(finalConfigPath)) {

@@ -60,6 +60,7 @@ export interface TrendData {
   totalSize: number;
   gzipSize?: number;
   performanceScore?: number;
+  type: 'client' | 'server';
   fcp?: number;
   lcp?: number;
   cls?: number;
