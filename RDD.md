@@ -70,7 +70,7 @@
 - トレンドグラフ生成
 - オプション:
   - `--days <n>`: 表示期間
-  - `--metric <type>`: 特定メトリクスのみ
+  - `--format <type>`: フォーマット (console / format)
 
 #### `perf-audit clean [options]`
 

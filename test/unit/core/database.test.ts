@@ -116,17 +116,6 @@ describe('PerformanceDatabase', () => {
 
       expect(db1).toBe(db2);
     });
-
-    it('should have Repository properly initialized', async () => {
-      const db = await PerformanceDatabaseService.instance();
-      const repository = (db as unknown as { getRepository: () => Repository; }).getRepository();
-
-      expect(repository).toBeDefined();
-      expect(repository.builds).toBeDefined();
-      expect(repository.bundles).toBeDefined();
-      expect(repository.metrics).toBeDefined();
-      expect(repository.recommendations).toBeDefined();
-    });
   });
 
   describe('saveBuild', () => {

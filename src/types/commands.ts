@@ -29,7 +29,6 @@ export interface DashboardOptions {
 /** History options interface */
 export interface HistoryOptions {
   days: number;
-  metric?: string;
   format: 'console' | 'json';
 }
 

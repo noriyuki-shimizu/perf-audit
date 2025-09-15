@@ -40,10 +40,17 @@ export class PerformanceDatabaseService {
   }
 
   /**
+   * データベースをクリーンアップ
+   */
+  async cleanDatabase(): Promise<void> {
+    await this.repository.cleanAll();
+  }
+
+  /**
    * ビルドデータを保存（非同期版）
    */
-  async saveBuild(data: NewBuildRecord): Promise<number | bigint> {
-    return await this.repository.builds.create(data).then(async buildId => {
+  saveBuild(data: NewBuildRecord): Promise<number | bigint> {
+    return this.repository.builds.create(data).then(async buildId => {
       const savePromises: Promise<void>[] = [];
 
       // バンドルを保存
@@ -87,8 +94,8 @@ export class PerformanceDatabaseService {
   /**
    * トレンドデータを取得（非同期版）
    */
-  async getTrendData(days = 30): Promise<TrendData[]> {
-    return await this.repository.builds.getTrendData(days);
+  getTrendData(days = 30): Promise<TrendData[]> {
+    return this.repository.builds.getTrendData(days);
   }
 
   /**
@@ -100,7 +107,7 @@ export class PerformanceDatabaseService {
   ): Promise<(BuildRecord & { bundles: BundleInfo[]; recommendations: string[]; })[]> {
     const builds = await this.repository.builds.findRecent(limit, orderBy);
 
-    return await Promise.all(
+    return Promise.all(
       builds.map(async build => ({
         ...build,
         bundles: await this.repository.bundles.findByBuildId(build.id),
@@ -134,20 +141,20 @@ export class PerformanceDatabaseService {
   /**
    * ビルド比較を取得（同期版）
    */
-  async getBuildComparison(buildId1: number, buildId2: number): Promise<{
+  getBuildComparison(buildId1: number, buildId2: number): Promise<{
     build1: BuildBundleMetricRecord | undefined;
     build2: BuildBundleMetricRecord | undefined;
     bundleDiff: BundleDiff[];
     metricDiff: MetricDiff[];
   }> {
-    return await this.repository.builds.getComparison(buildId1, buildId2);
+    return this.repository.builds.getComparison(buildId1, buildId2);
   }
 
   /**
    * 古いビルドをクリーンアップ
    */
-  async cleanup(retentionDays: number): Promise<number> {
-    return await this.repository.builds.cleanup(retentionDays);
+  cleanup(retentionDays: number): Promise<number> {
+    return this.repository.builds.cleanup(retentionDays);
   }
 
   /**
@@ -158,10 +165,6 @@ export class PerformanceDatabaseService {
       await this.repository.close();
     }
   }
-
-  /**
-   * 高度な検索・分析メソッド
-   */
 
   /**
    * バンドルサイズの統計を取得
@@ -221,15 +224,8 @@ export class PerformanceDatabaseService {
   /**
    * よく出現する推奨事項を取得
    */
-  async getFrequentRecommendations(days = 30, limit = 10): Promise<Array<{ message: string; count: number; }>> {
-    return await this.repository.recommendations.findFrequentRecommendations(days, limit);
-  }
-
-  /**
-   * カスタムクエリ実行（アドバンス用）
-   */
-  getRepository(): Repository {
-    return this.repository;
+  getFrequentRecommendations(days = 30, limit = 10): Promise<Array<{ message: string; count: number; }>> {
+    return this.repository.recommendations.findFrequentRecommendations(days, limit);
   }
 
   /**

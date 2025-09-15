@@ -332,8 +332,8 @@ const createEmptyStats = (): DashboardStats => ({
   averageSize: 0,
   lastBuildStatus: 'ok',
   trendsCount: 0,
-  clientStats: { totalSize: 0, averageSize: 0, bundleCount: 0 },
-  serverStats: { totalSize: 0, averageSize: 0, bundleCount: 0 },
+  clientStats: { totalSize: 0, averageSize: 0, bundleCount: 0, formattedTotalSize: '0B', formattedAverageSize: '0B' },
+  serverStats: { totalSize: 0, averageSize: 0, bundleCount: 0, formattedTotalSize: '0B', formattedAverageSize: '0B' },
 });
 
 /**

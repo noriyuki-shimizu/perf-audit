@@ -4,7 +4,6 @@ import readline from 'readline';
 import {
   CACHE_DIRECTORY,
   CACHE_RETENTION_DAYS,
-  DATABASE_PATH,
   DEFAULT_RETENTION_DAYS,
   MILLISECONDS_PER_DAY,
   REPORT_EXTENSIONS,
@@ -52,7 +51,7 @@ const cleanAllData = async (config: PerfAuditConfig, force: boolean = false): Pr
     }
   }
 
-  cleanDatabase();
+  await cleanDatabase();
   const deletedReportsCount = cleanAllReports(config);
   cleanCacheDirectory();
 
@@ -90,12 +89,9 @@ const cleanOldData = async (config: PerfAuditConfig, days: number, force: boolea
 /**
  * Clean database file completely
  */
-const cleanDatabase = (): void => {
-  const dbPath = path.resolve(DATABASE_PATH);
-  if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-    Logger.success('Database deleted');
-  }
+const cleanDatabase = async (): Promise<void> => {
+  const service = await PerformanceDatabaseService.instance();
+  await service.cleanDatabase();
 };
 
 /**
@@ -167,7 +163,7 @@ const cleanOldReports = (config: PerfAuditConfig, days: number): number => {
     const filePath = path.join(reportsDir, file);
     const stats = fs.statSync(filePath);
 
-    if (isOldReportFile(file, stats, cutoffTime)) {
+    if (stats.mtimeMs < cutoffTime && isReportFile(file)) {
       fs.unlinkSync(filePath);
       deletedCount++;
     }
@@ -203,17 +199,6 @@ const calculateCutoffTime = (days: number): number => {
  */
 const isReportFile = (fileName: string): boolean => {
   return REPORT_EXTENSIONS.some(ext => fileName.endsWith(ext));
-};
-
-/**
- * Check if file is an old report file that should be deleted
- * @param fileName - Name of the file
- * @param stats - File statistics
- * @param cutoffTime - Cutoff timestamp
- * @returns Whether the file should be deleted
- */
-const isOldReportFile = (fileName: string, stats: fs.Stats, cutoffTime: number): boolean => {
-  return stats.mtimeMs < cutoffTime && isReportFile(fileName);
 };
 
 /**

@@ -14,13 +14,16 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
   try {
     const trendData = await db.getTrendData(options.days);
     const recentBuilds = await db.getRecentBuilds(10);
+    const clientTrendData = trendData.filter(data => data.type === 'client');
+    const serverTrendData = trendData.filter(data => data.type === 'server');
 
     if (options.format === 'json') {
       const output = {
         period: `${options.days} days`,
         trendData,
         recentBuilds,
-        summary: generateSummary(trendData),
+        clientSummary: generateSummary(clientTrendData),
+        serverSummary: generateSummary(serverTrendData),
       };
       Logger.json(output);
       return;
@@ -35,15 +38,13 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
     }
 
     // Show trend data
-    if (options.metric) {
-      displaySpecificMetric(trendData, options.metric);
-    } else {
-      displayOverview(trendData);
-    }
+    Logger.section('Bundle Size Trend');
+    displayOverview(clientTrendData);
+    displayOverview(serverTrendData);
 
     // Show recent builds
     Logger.section('Recent Builds');
-    recentBuilds.slice(0, 5).forEach((build, index) => {
+    recentBuilds.forEach((build, index) => {
       const date = new Date(build.timestamp).toLocaleDateString();
       const time = new Date(build.timestamp).toLocaleTimeString();
       const branch = build.branch ? ` (${build.branch})` : '';
@@ -52,15 +53,33 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
       Logger.info(`${index + 1}. ${date} ${time}${branch}${device}`);
     });
 
-    // Show summary
-    const summary = generateSummary(trendData);
+    Logger.section('Lighthouse Score (Core Web Vitals Trend)');
+    displayLighthouseScore(trendData);
+
+    const clientSummary = generateSummary(clientTrendData);
+
     Logger.section('Summary');
     Logger.info(`Total builds: ${trendData.length}`);
-    Logger.info(`Avg bundle size: ${formatSize(summary.avgBundleSize)}`);
-    Logger.info(`Size trend: ${summary.sizeTrend > 0 ? '📈' : '📉'} ${formatSize(Math.abs(summary.sizeTrend))}`);
+    Logger.raw('===== Client Bundles =====');
+    Logger.info(`Avg bundle size: ${formatSize(clientSummary.avgBundleSize)}`);
+    Logger.info(
+      `Size trend: ${clientSummary.sizeTrend > 0 ? '📈' : '📉'} ${formatSize(Math.abs(clientSummary.sizeTrend))}`,
+    );
 
-    if (summary.avgPerformanceScore > 0) {
-      Logger.info(`Avg performance: ${summary.avgPerformanceScore.toFixed(1)}/100`);
+    if (clientSummary.avgPerformanceScore > 0) {
+      Logger.info(`Avg performance: ${clientSummary.avgPerformanceScore.toFixed(1)}/100`);
+    }
+
+    const serverSummary = generateSummary(serverTrendData);
+
+    Logger.raw('===== Server Bundles =====');
+    Logger.info(`Avg bundle size: ${formatSize(serverSummary.avgBundleSize)}`);
+    Logger.info(
+      `Size trend: ${serverSummary.sizeTrend > 0 ? '📈' : '📉'} ${formatSize(Math.abs(serverSummary.sizeTrend))}`,
+    );
+
+    if (serverSummary.avgPerformanceScore > 0) {
+      Logger.info(`Avg performance: ${serverSummary.avgPerformanceScore.toFixed(1)}/100`);
     }
   } catch (error) {
     Logger.error(error instanceof Error ? error.message : 'Unknown error');
@@ -71,14 +90,11 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
 }
 
 /**
- * Display overview of performance trends including bundle sizes and Core Web Vitals
+ * Display overview of bundle size trends
  * @param trendData - Array of historical trend data
  */
 function displayOverview(trendData: TrendData[]): void {
-  Logger.section('Bundle Size Trend');
-  const recentData = trendData.slice(0, 10);
-
-  recentData.forEach(data => {
+  trendData.forEach(data => {
     const date = data.date;
     const size = formatSize(data.totalSize);
     const gzipSize = data.gzipSize ? ` (${formatSize(data.gzipSize)} gzipped)` : '';
@@ -86,54 +102,24 @@ function displayOverview(trendData: TrendData[]): void {
 
     Logger.info(`${date}: ${size}${gzipSize}${perf}`);
   });
-
-  if (recentData.some(d => d.fcp)) {
-    Logger.section('Core Web Vitals Trend');
-    recentData.forEach(data => {
-      if (data.fcp) {
-        Logger.info(`${data.date}: FCP ${data.fcp}ms | LCP ${data.lcp}ms | CLS ${data.cls} | TTI ${data.tti}ms`);
-      }
-    });
-  }
 }
 
 /**
- * Display trend data for a specific performance metric
+ * Display Lighthouse performance scores and Core Web Vitals trends
  * @param trendData - Array of historical trend data
- * @param metric - Specific metric to display (size, gzip-size, performance, fcp, lcp, cls, tti)
  */
-function displaySpecificMetric(trendData: TrendData[], metric: string): void {
-  Logger.section(`${metric.toUpperCase()} Trend`);
+function displayLighthouseScore(trendData: TrendData[]): void {
+  const filteredData = trendData.filter(d => d.performanceScore);
 
-  trendData.slice(0, 15).forEach(data => {
-    let value: string = 'N/A';
+  if (filteredData.length === 0) {
+    Logger.warn('No Lighthouse score data found.');
+    return;
+  }
 
-    switch (metric.toLowerCase()) {
-      case 'size':
-      case 'bundle-size':
-        value = formatSize(data.totalSize);
-        break;
-      case 'gzip-size':
-        value = data.gzipSize ? formatSize(data.gzipSize) : 'N/A';
-        break;
-      case 'performance':
-        value = data.performanceScore ? `${data.performanceScore}/100` : 'N/A';
-        break;
-      case 'fcp':
-        value = data.fcp ? `${data.fcp}ms` : 'N/A';
-        break;
-      case 'lcp':
-        value = data.lcp ? `${data.lcp}ms` : 'N/A';
-        break;
-      case 'cls':
-        value = data.cls ? data.cls.toString() : 'N/A';
-        break;
-      case 'tti':
-        value = data.tti ? `${data.tti}ms` : 'N/A';
-        break;
-    }
-
-    Logger.info(`${data.date}: ${value}`);
+  filteredData.forEach(data => {
+    Logger.info(
+      `${data.date}: [Performance ${data.performanceScore}/100] FCP ${data.fcp}ms | LCP ${data.lcp}ms | CLS ${data.cls} | TTI ${data.tti}ms`,
+    );
   });
 }
 

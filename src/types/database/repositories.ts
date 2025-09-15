@@ -161,6 +161,11 @@ export interface Repository {
   initSchema(): Promise<void>;
 
   /**
+   * データベースをクリーンアップ
+   */
+  cleanAll(): Promise<void>;
+
+  /**
    * トランザクションを開始
    */
   beginTransaction(): Promise<void>;
