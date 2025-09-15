@@ -8,6 +8,9 @@ vi.setConfig({ testTimeout: 100 });
 
 vi.mock('fs');
 vi.mock('path');
+vi.mock('../../../src/utils/package.ts', () => ({
+  getPackageJson: vi.fn(() => ({ version: '0.2.2' })),
+}));
 
 const mockFs = vi.mocked(fs);
 const mockPath = vi.mocked(path);
