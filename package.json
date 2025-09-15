@@ -1,7 +1,7 @@
 {
   "name": "perf-audit-cli",
   "author": "Noriyuki Shimizu",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CLI tool for continuous performance monitoring and analysis",
   "type": "module",
   "main": "dist/index.js",
