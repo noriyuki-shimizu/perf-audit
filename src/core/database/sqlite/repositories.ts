@@ -104,12 +104,11 @@ export class SqliteBuildRepository implements BuildRepository {
     await this.db.transaction(async () => {
       const buildIdsQuery = `
         SELECT id FROM builds
-        WHERE datetime(timestamp) > datetime(?)
+        WHERE datetime(timestamp) < datetime(?)
       `;
 
       const buildIds = await this.db.all<{ id: number; }>(buildIdsQuery, [cutoffDateStr]);
 
-      console.log('buildIds: ', buildIds);
       if (buildIds.length === 0) {
         return;
       }
@@ -123,7 +122,7 @@ export class SqliteBuildRepository implements BuildRepository {
 
     const query = `
       DELETE FROM builds
-      WHERE datetime(timestamp) > datetime(?)
+      WHERE datetime(timestamp) < datetime(?)
     `;
 
     const result = await this.db.run(query, [cutoffDateStr]);

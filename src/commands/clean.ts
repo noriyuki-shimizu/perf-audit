@@ -76,7 +76,7 @@ const cleanOldData = async (config: PerfAuditConfig, days: number, force: boolea
     }
   }
 
-  const deletedBuilds = cleanOldDatabaseRecords(days);
+  const deletedBuilds = await cleanOldDatabaseRecords(days);
   const deletedReportsCount = cleanOldReports(config, days);
   cleanOldCacheFiles();
 
