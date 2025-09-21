@@ -102,10 +102,19 @@ export class PerformanceDatabaseService {
    * 最新のビルドを取得（非同期版）
    */
   async getRecentBuilds(
-    limit = 10,
-    orderBy: 'ASC' | 'DESC' = 'ASC',
+    param: {
+      startDate?: string;
+      endDate?: string;
+      limit: number;
+      orderBy: 'ASC' | 'DESC';
+    },
   ): Promise<(BuildRecord & { bundles: BundleInfo[]; recommendations: string[]; })[]> {
-    const builds = await this.repository.builds.findRecent(limit, orderBy);
+    const { startDate, endDate, limit, orderBy } = param;
+    const builds = await this.repository.builds.findByStartDateAndEndDate(
+      { startDate, endDate },
+      limit,
+      orderBy,
+    );
 
     return Promise.all(
       builds.map(async build => ({

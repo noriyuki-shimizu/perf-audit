@@ -111,7 +111,7 @@ const handleGetBuilds =
   (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
-      const builds = await db.getRecentBuilds(limit, 'DESC');
+      const builds = await db.getRecentBuilds({ limit, orderBy: 'DESC' });
       res.json(builds);
     } catch {
       res.status(500).json({ error: 'Failed to fetch builds' });
@@ -245,8 +245,8 @@ const validateTrendQuery = (query: express.Request['query']): TrendQuery => {
 
   return {
     days: parseInt(query.days ?? '30', 10),
-    startDate: query.startDate !== undefined ? `${query.startDate} 00:00:00` : '',
-    endDate: query.endDate !== undefined ? `${query.endDate} 23:59:59` : '',
+    startDate: query.startDate !== undefined ? `${query.startDate} 00:00:00` : undefined,
+    endDate: query.endDate !== undefined ? `${query.endDate} 23:59:59` : undefined,
   };
 };
 
@@ -289,7 +289,7 @@ const setupWebSocket = (wss: WebSocketServer): void => {
  * @returns Dashboard statistics
  */
 const getDashboardStats = async (db: PerformanceDatabaseService): Promise<DashboardStats> => {
-  const recentBuilds = await db.getRecentBuilds(30);
+  const recentBuilds = await db.getRecentBuilds({ limit: 30, orderBy: 'ASC' });
 
   if (recentBuilds.length === 0) {
     return createEmptyStats();
@@ -399,18 +399,12 @@ const getFilteredBuilds = async (
   db: PerformanceDatabaseService,
   param: TrendQuery,
 ): Promise<Build[]> => {
-  let builds = await db.getRecentBuilds(param.days * 4);
-
-  if (param.startDate && param.endDate) {
-    const start = new Date(param.startDate);
-    const end = new Date(param.endDate);
-    builds = builds.filter(build => {
-      const buildDate = new Date(build.timestamp);
-      return buildDate >= start && buildDate <= end;
-    });
-  }
-
-  return builds;
+  return db.getRecentBuilds({
+    startDate: param.startDate,
+    endDate: param.endDate,
+    limit: param.days * 4,
+    orderBy: 'ASC',
+  });
 };
 
 /**

@@ -39,7 +39,7 @@ describe('PerformanceDatabase', () => {
     // Create mock repositories
     mockBuildsRepo = {
       create: vi.fn().mockResolvedValue(123),
-      findRecent: vi.fn().mockResolvedValue([]),
+      findByStartDateAndEndDate: vi.fn().mockResolvedValue([]),
       findById: vi.fn().mockResolvedValue(null),
       getTrendData: vi.fn().mockResolvedValue([]),
       getComparison: vi.fn().mockResolvedValue({
@@ -256,14 +256,18 @@ describe('PerformanceDatabase', () => {
 
       const mockRecommendations = ['Optimize images'];
 
-      mockBuildsRepo.findRecent = vi.fn().mockResolvedValue([mockBuild]);
+      mockBuildsRepo.findByStartDateAndEndDate = vi.fn().mockResolvedValue([mockBuild]);
       mockBundlesRepo.findByBuildId = vi.fn().mockResolvedValue(mockBundles);
       mockRecommendationsRepo.findByBuildId = vi.fn().mockResolvedValue(mockRecommendations);
 
       const db = await PerformanceDatabaseService.instance();
-      const result = await db.getRecentBuilds(5, 'DESC');
+      const result = await db.getRecentBuilds({ limit: 5, orderBy: 'DESC' });
 
-      expect(mockBuildsRepo.findRecent).toHaveBeenCalledWith(5, 'DESC');
+      expect(mockBuildsRepo.findByStartDateAndEndDate).toHaveBeenCalledWith(
+        { startDate: undefined, endDate: undefined },
+        5,
+        'DESC',
+      );
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         ...mockBuild,
@@ -274,16 +278,24 @@ describe('PerformanceDatabase', () => {
 
     it('should order results by ASC', async () => {
       const db = await PerformanceDatabaseService.instance();
-      db.getRecentBuilds(10, 'ASC');
+      db.getRecentBuilds({ limit: 10, orderBy: 'ASC' });
 
-      expect(mockBuildsRepo.findRecent).toHaveBeenCalledWith(10, 'ASC');
+      expect(mockBuildsRepo.findByStartDateAndEndDate).toHaveBeenCalledWith(
+        { startDate: undefined, endDate: undefined },
+        10,
+        'ASC',
+      );
     });
 
     it('should order results by DESC', async () => {
       const db = await PerformanceDatabaseService.instance();
-      db.getRecentBuilds(10, 'DESC');
+      db.getRecentBuilds({ limit: 10, orderBy: 'DESC' });
 
-      expect(mockBuildsRepo.findRecent).toHaveBeenCalledWith(10, 'DESC');
+      expect(mockBuildsRepo.findByStartDateAndEndDate).toHaveBeenCalledWith(
+        { startDate: undefined, endDate: undefined },
+        10,
+        'DESC',
+      );
     });
   });
 

@@ -205,7 +205,7 @@ ${testCases.join('\n')}
   private static async getHistoricalComparison(): Promise<string | null> {
     try {
       const db = await PerformanceDatabaseService.instance();
-      const recent = await db.getRecentBuilds(2);
+      const recent = await db.getRecentBuilds({ limit: 2, orderBy: 'ASC' });
 
       if (recent.length < 2) {
         await db.close();

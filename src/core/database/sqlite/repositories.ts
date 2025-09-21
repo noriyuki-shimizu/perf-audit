@@ -47,15 +47,32 @@ export class SqliteBuildRepository implements BuildRepository {
     return this.db.get<BuildRecord>(query, [id]);
   }
 
-  findRecent(limit = 10, orderBy: 'ASC' | 'DESC' = 'DESC'): Promise<BuildRecord[]> {
+  findByStartDateAndEndDate(
+    whereParam: { startDate?: string; endDate?: string; },
+    limit = 10,
+    orderBy: 'ASC' | 'DESC' = 'DESC',
+  ): Promise<BuildRecord[]> {
+    const startDate = whereParam.startDate !== undefined ? new Date(whereParam.startDate).toISOString() : undefined;
+    const endDate = whereParam.endDate !== undefined ? new Date(whereParam.endDate).toISOString() : undefined;
+
     const query = `
       SELECT id, timestamp, branch, commit_hash as commitHash, url, device
       FROM builds
+      WHERE 1=1
+      ${startDate !== undefined ? 'AND datetime(timestamp) >= datetime(?)' : ''}
+      ${endDate !== undefined ? 'AND datetime(timestamp) <= datetime(?)' : ''}
       ORDER BY timestamp ${orderBy}
       LIMIT ?
     `;
 
-    return this.db.all<BuildRecord>(query, [limit]);
+    return this.db.all<BuildRecord>(
+      query,
+      [
+        startDate,
+        endDate,
+        limit,
+      ].filter(param => param !== undefined),
+    );
   }
 
   findByDateRange(startDate: string, endDate: string): Promise<BuildRecord[]> {

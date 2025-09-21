@@ -132,8 +132,8 @@ export interface Build {
 /** Trend query parameters */
 export interface TrendQuery {
   days: number;
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 /** Trend data interface */
