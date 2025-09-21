@@ -20,7 +20,11 @@ export interface BuildRepository {
   /**
    * 最新のビルドを取得
    */
-  findRecent(limit?: number, orderBy?: 'ASC' | 'DESC'): Promise<BuildRecord[]>;
+  findByStartDateAndEndDate(
+    whereParam: { startDate?: string; endDate?: string; },
+    limit: number,
+    orderBy: 'ASC' | 'DESC',
+  ): Promise<BuildRecord[]>;
 
   /**
    * 期間内のビルドを取得

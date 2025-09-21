@@ -13,7 +13,7 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
 
   try {
     const trendData = await db.getTrendData(options.days);
-    const recentBuilds = await db.getRecentBuilds(10);
+    const recentBuilds = await db.getRecentBuilds({ limit: 10, orderBy: 'ASC' });
     const clientTrendData = trendData.filter(data => data.type === 'client');
     const serverTrendData = trendData.filter(data => data.type === 'server');
 
