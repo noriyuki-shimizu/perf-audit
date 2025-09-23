@@ -410,7 +410,7 @@ const analyzeServerBundles = async (config: PerfAuditConfig): Promise<BundleInfo
 const saveBuildToDatabase = async (db: PerformanceDatabaseService, result: AuditResult): Promise<void> => {
   await db.saveBuild({
     timestamp: result.timestamp,
-    bundles: result.bundles,
+    bundles: [...result.serverBundles, ...result.clientBundles],
     recommendations: result.recommendations,
   });
 };
@@ -449,8 +449,11 @@ const compareResults = (baseline: AuditResult, current: AuditResult): Performanc
   let hasRegression = false;
   let hasImprovement = false;
 
-  const baselineMap = new Map(baseline.bundles.map(b => [b.name, b]));
-  const currentMap = new Map(current.bundles.map(b => [b.name, b]));
+  const baselineBundles = [...baseline.serverBundles, ...baseline.clientBundles];
+  const currentBundles = [...current.serverBundles, ...current.clientBundles];
+
+  const baselineMap = new Map(baselineBundles.map(b => [b.name, b]));
+  const currentMap = new Map(currentBundles.map(b => [b.name, b]));
 
   // Compare existing bundles
   for (const [name, currentBundle] of currentMap) {

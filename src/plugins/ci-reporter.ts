@@ -50,10 +50,12 @@ export const ciReporterPlugin: Plugin = {
 };
 
 function generateCISummary(result: AuditResult): CISummary {
-  const totalSize = result.bundles.reduce((sum, b) => sum + b.size, 0);
-  const totalGzipSize = result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+  const serverTotalSize = result.serverBundles.reduce((sum, b) => sum + b.size, 0);
+  const serverTotalGzipSize = result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+  const clientTotalSize = result.clientBundles.reduce((sum, b) => sum + b.size, 0);
+  const clientTotalGzipSize = result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
 
-  const violations = result.bundles
+  const violations = [...result.serverBundles, ...result.clientBundles]
     .filter(b => b.status !== 'ok')
     .map(b => ({
       name: b.name,
@@ -64,7 +66,7 @@ function generateCISummary(result: AuditResult): CISummary {
   const improvements: Array<{ name: string; description: string; }> = [];
 
   // Generate improvement suggestions based on bundle analysis
-  const largeBundles = result.bundles.filter(b => b.size > 150 * 1024);
+  const largeBundles = [...result.serverBundles, ...result.clientBundles].filter(b => b.size > 150 * 1024);
   if (largeBundles.length > 0) {
     improvements.push({
       name: 'Code Splitting',
@@ -72,7 +74,7 @@ function generateCISummary(result: AuditResult): CISummary {
     });
   }
 
-  const manySmallBundles = result.bundles.filter(b => b.size < 10 * 1024);
+  const manySmallBundles = [...result.serverBundles, ...result.clientBundles].filter(b => b.size < 10 * 1024);
   if (manySmallBundles.length > 5) {
     improvements.push({
       name: 'Bundle Consolidation',
@@ -89,9 +91,16 @@ function generateCISummary(result: AuditResult): CISummary {
 
   return {
     status,
-    totalSize: formatSize(totalSize),
-    totalGzipSize: formatSize(totalGzipSize),
-    bundleCount: result.bundles.length,
+    server: {
+      totalSize: formatSize(serverTotalSize),
+      totalGzipSize: formatSize(serverTotalGzipSize),
+      bundleCount: result.serverBundles.length,
+    },
+    client: {
+      totalSize: formatSize(clientTotalSize),
+      totalGzipSize: formatSize(clientTotalGzipSize),
+      bundleCount: result.clientBundles.length,
+    },
     violations,
     improvements,
     performanceScore: result.lighthouse?.performance,
@@ -99,7 +108,7 @@ function generateCISummary(result: AuditResult): CISummary {
 }
 
 function outputGitHubActionsSummary(summary: CISummary): void {
-  const { status, totalSize, totalGzipSize, bundleCount, violations, improvements } = summary;
+  const { status, server, client, violations, improvements } = summary;
 
   const statusEmoji = {
     success: '✅',
@@ -109,8 +118,10 @@ function outputGitHubActionsSummary(summary: CISummary): void {
 
   let output = `\n## 📊 Performance Audit Summary ${statusEmoji}\n\n`;
   output += `**Status:** ${status.toUpperCase()}\n`;
-  output += `**Total Size:** ${totalSize} (${totalGzipSize} gzipped)\n`;
-  output += `**Bundle Count:** ${bundleCount}\n\n`;
+  output += `**Server Total Size:** ${server.totalSize} (${server.totalGzipSize} gzipped)\n`;
+  output += `**Server Bundle Count:** ${server.bundleCount}\n`;
+  output += `**Client Total Size:** ${client.totalSize} (${client.totalGzipSize} gzipped)\n`;
+  output += `**Client Bundle Count:** ${client.bundleCount}\n\n`;
 
   if (violations.length > 0) {
     output += `### ⚠️ Budget Violations\n\n`;
@@ -139,7 +150,7 @@ function outputGitHubActionsSummary(summary: CISummary): void {
 }
 
 function outputGitLabCISummary(summary: CISummary): void {
-  const { status, totalSize, bundleCount, violations } = summary;
+  const { status, server, client, violations } = summary;
 
   const statusEmoji = {
     success: '✅',
@@ -149,8 +160,10 @@ function outputGitLabCISummary(summary: CISummary): void {
 
   console.log(`\n📊 Performance Audit ${statusEmoji}`);
   console.log(`Status: ${status.toUpperCase()}`);
-  console.log(`Total Size: ${totalSize}`);
-  console.log(`Bundles: ${bundleCount}`);
+  console.log(`Server Total Size: ${server.totalSize}`);
+  console.log(`Server Bundle Count: ${server.bundleCount}`);
+  console.log(`Client Total Size: ${client.totalSize}`);
+  console.log(`Client Bundle Count: ${client.bundleCount}`);
 
   if (violations.length > 0) {
     console.log(`\n⚠️ Budget Violations: ${violations.length}`);

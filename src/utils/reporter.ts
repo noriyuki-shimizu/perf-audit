@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { BundleAnalyzer } from '../core/bundle-analyzer.ts';
 import type { AuditResult, BundleInfo, PerfAuditConfig } from '../types/config.ts';
 import { formatDelta, formatSize } from './size.ts';
 
@@ -11,7 +12,6 @@ export class ConsoleReporter {
 
   reportBundleAnalysis(
     result: AuditResult,
-    totalSizes: { size: number; gzipSize?: number; },
     showDetails: boolean = false,
   ): void {
     console.log(chalk.blue('\n🎯 Performance Audit Report'));
@@ -25,14 +25,10 @@ export class ConsoleReporter {
       : '🖥️ Server-side Analysis';
     console.log(chalk.blue(`\n${typeIndicator}`));
 
-    // Separate client and server bundles
-    const clientBundles = result.bundles.filter(b => b.type === 'client');
-    const serverBundles = result.bundles.filter(b => b.type === 'server');
-
     // Client bundles section
-    if (clientBundles.length > 0) {
+    if (result.clientBundles.length > 0) {
       console.log(chalk.yellow('\n📦 Client Bundles:'));
-      clientBundles.forEach(bundle => {
+      result.clientBundles.forEach(bundle => {
         const status = this.getStatusIcon(bundle.status);
         const sizeText = formatSize(bundle.size);
         const gzipText = bundle.gzipSize ? ` (gzip: ${formatSize(bundle.gzipSize)})` : '';
@@ -45,17 +41,17 @@ export class ConsoleReporter {
         }
       });
 
-      const clientTotalSize = clientBundles.reduce((sum, b) => sum + b.size, 0);
-      const clientTotalGzipSize = clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+      const clientTotalSize = result.clientBundles.reduce((sum, b) => sum + b.size, 0);
+      const clientTotalGzipSize = result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
       const clientSizeText = formatSize(clientTotalSize);
       const clientGzipText = clientTotalGzipSize > 0 ? ` (gzip: ${formatSize(clientTotalGzipSize)})` : '';
       console.log(`└─ Client Total: ${clientSizeText}${clientGzipText}`);
     }
 
     // Server bundles section
-    if (serverBundles.length > 0) {
+    if (result.serverBundles.length > 0) {
       console.log(chalk.green('\n🖥️ Server Bundles:'));
-      serverBundles.forEach(bundle => {
+      result.serverBundles.forEach(bundle => {
         const status = this.getStatusIcon(bundle.status);
         const sizeText = formatSize(bundle.size);
         const gzipText = bundle.gzipSize ? ` (gzip: ${formatSize(bundle.gzipSize)})` : '';
@@ -68,16 +64,17 @@ export class ConsoleReporter {
         }
       });
 
-      const serverTotalSize = serverBundles.reduce((sum, b) => sum + b.size, 0);
-      const serverTotalGzipSize = serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+      const serverTotalSize = result.serverBundles.reduce((sum, b) => sum + b.size, 0);
+      const serverTotalGzipSize = result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
       const serverSizeText = formatSize(serverTotalSize);
       const serverGzipText = serverTotalGzipSize > 0 ? ` (gzip: ${formatSize(serverTotalGzipSize)})` : '';
       console.log(`└─ Server Total: ${serverSizeText}${serverGzipText}`);
     }
 
     // Overall total size
-    if (result.analysisType === 'both' && clientBundles.length > 0 && serverBundles.length > 0) {
+    if (result.analysisType === 'both' && (result.clientBundles.length > 0 || result.serverBundles.length > 0)) {
       console.log(chalk.blue('\n📊 Overall Total:'));
+      const totalSizes = BundleAnalyzer.calculateTotalSize([...result.serverBundles, ...result.clientBundles]);
       const totalSizeText = formatSize(totalSizes.size);
       const totalGzipText = totalSizes.gzipSize ? ` (gzip: ${formatSize(totalSizes.gzipSize)})` : '';
       console.log(`└─ Combined Total: ${totalSizeText}${totalGzipText}`);
@@ -106,7 +103,7 @@ export class ConsoleReporter {
 
     let hasViolations = false;
 
-    result.bundles.forEach(bundle => {
+    [...result.serverBundles, ...result.clientBundles].forEach(bundle => {
       if (bundle.status !== 'ok') {
         hasViolations = true;
         const status = this.getStatusIcon(bundle.status);

@@ -242,7 +242,8 @@ const createBudgetAuditResult = (
 
   return {
     timestamp: getCurrentTimestamp(),
-    bundles: bundlesWithBudgets,
+    serverBundles: bundlesWithBudgets.filter(b => b.type === 'server'),
+    clientBundles: bundlesWithBudgets.filter(b => b.type === 'client'),
     recommendations: [],
     budgetStatus: getBudgetStatus(bundlesWithBudgets, totalStatus),
     analysisType: analysisTarget,
@@ -279,7 +280,10 @@ const generateJsonBudgetReport = (result: AuditResult): void => {
   const jsonOutput: BudgetJsonOutput = {
     passed: result.budgetStatus === 'ok',
     status: result.budgetStatus,
-    violations: result.bundles.filter(b => b.status !== 'ok'),
+    violations: [
+      ...result.serverBundles.filter(b => b.status !== 'ok'),
+      ...result.clientBundles.filter(b => b.status !== 'ok'),
+    ],
     timestamp: result.timestamp,
   };
   Logger.json(jsonOutput);

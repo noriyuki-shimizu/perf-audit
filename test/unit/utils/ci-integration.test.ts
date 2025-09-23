@@ -17,7 +17,8 @@ describe('CIIntegration', () => {
   const mockAuditResult: AuditResult = {
     timestamp: '2023-01-01T00:00:00.000Z',
     analysisType: 'client',
-    bundles: [
+    serverBundles: [],
+    clientBundles: [
       {
         name: 'main.js',
         size: 100000,
@@ -164,7 +165,7 @@ describe('CIIntegration', () => {
     it('should include bundle analysis table', async () => {
       const summary = await CIIntegration.generateGitHubActionsSummary(mockAuditResult);
 
-      expect(summary).toContain('## 📦 Bundle Analysis');
+      expect(summary).toContain('## 📦 Client Bundle Analysis');
       expect(summary).toContain('| Bundle | Size | Gzipped | Status |');
       expect(summary).toContain('| `main.js` | 97.7KB | 29.3KB | ✅ ok |');
       expect(summary).toContain('| `vendor.js` | 195.3KB | 58.6KB | ⚠️ warning |');
@@ -230,14 +231,16 @@ describe('CIIntegration', () => {
       expect(xml).toContain('<testsuites>');
       expect(xml).toContain('<testsuite name="Performance Audit"');
       expect(xml).toContain('tests="3"'); // 2 bundle tests + 1 lighthouse test
-      expect(xml).toContain('<testcase name="Bundle size check: main.js"');
-      expect(xml).toContain('<testcase name="Bundle size check: vendor.js"');
+      expect(xml).toContain('<testcase name="Client Bundle size check: main.js"');
+      expect(xml).toContain('<testcase name="Client Bundle size check: vendor.js"');
     });
 
     it('should mark passing bundle tests correctly', async () => {
       const xml = CIIntegration.generateJunitXml(mockAuditResult);
 
-      expect(xml).toContain('<testcase name="Bundle size check: main.js" classname="BundleBudgetTests" time="0"/>');
+      expect(xml).toContain(
+        '<testcase name="Client Bundle size check: main.js" classname="ClientBundleBudgetTests" time="0"/>',
+      );
     });
 
     it('should include Lighthouse performance test', async () => {
@@ -296,10 +299,12 @@ describe('CIIntegration', () => {
       const context = { isCI: true, provider: 'github' as const };
       const resultWithError = {
         ...mockAuditResult,
-        bundles: [
+        serverBundles: [],
+        clientBundles: [
           {
             name: 'huge.js',
             size: 500000,
+            gzipSize: 150000,
             status: 'error' as const,
             type: 'client' as const,
           },
@@ -308,7 +313,7 @@ describe('CIIntegration', () => {
 
       await CIIntegration.outputCIAnnotations(resultWithError, context);
 
-      expect(consoleSpy).toHaveBeenCalledWith('::error::Bundle huge.js exceeds size budget: 488.3KB');
+      expect(consoleSpy).toHaveBeenCalledWith('::error::Client Bundle huge.js exceeds size budget: 488.3KB');
     });
 
     it('should output GitHub Actions annotations for bundle warnings', async () => {
@@ -316,7 +321,7 @@ describe('CIIntegration', () => {
 
       await CIIntegration.outputCIAnnotations(mockAuditResult, context);
 
-      expect(consoleSpy).toHaveBeenCalledWith('::warning::Bundle vendor.js approaching size budget: 195.3KB');
+      expect(consoleSpy).toHaveBeenCalledWith('::warning::Client Bundle vendor.js approaching size budget: 195.3KB');
     });
 
     it('should output GitHub Actions annotations for Lighthouse warnings', async () => {

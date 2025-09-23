@@ -28,9 +28,16 @@ export const performanceTrackerPlugin: Plugin = {
       // Create performance snapshot
       const snapshot = {
         timestamp: result.timestamp,
-        totalSize: result.bundles.reduce((sum, b) => sum + b.size, 0),
-        totalGzipSize: result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
-        bundleCount: result.bundles.length,
+        server: {
+          totalSize: result.serverBundles.reduce((sum, b) => sum + b.size, 0),
+          totalGzipSize: result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
+          bundleCount: result.serverBundles.length,
+        },
+        client: {
+          totalSize: result.clientBundles.reduce((sum, b) => sum + b.size, 0),
+          totalGzipSize: result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
+          bundleCount: result.clientBundles.length,
+        },
         budgetStatus: result.budgetStatus,
         lighthouse: result.lighthouse,
       };
@@ -54,7 +61,9 @@ export const performanceTrackerPlugin: Plugin = {
         }
       }
 
-      context.logger.info(`Performance snapshot saved: ${formatSize(snapshot.totalSize)}`);
+      context.logger.info('Performance snapshot saved');
+      context.logger.info(`Server Total Size: ${formatSize(snapshot.server.totalSize)}`);
+      context.logger.info(`Client Total Size: ${formatSize(snapshot.client.totalSize)}`);
     },
 
     beforeReport: async (context, data) => {

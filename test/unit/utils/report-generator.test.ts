@@ -19,7 +19,8 @@ describe('ReportGenerator', () => {
   const mockAuditResult: AuditResult = {
     timestamp: '2023-01-01T00:00:00.000Z',
     analysisType: 'client',
-    bundles: [
+    serverBundles: [],
+    clientBundles: [
       {
         name: 'main.js',
         size: 100000,
@@ -105,9 +106,16 @@ describe('ReportGenerator', () => {
 
       expect(report.summary).toEqual({
         budgetStatus: 'warning',
-        totalBundles: 2,
-        totalSize: 300000,
-        totalGzipSize: 90000,
+        server: {
+          totalBundles: 0,
+          totalSize: 0,
+          totalGzipSize: 0,
+        },
+        client: {
+          totalBundles: 2,
+          totalSize: 300000,
+          totalGzipSize: 90000,
+        },
       });
     });
 
@@ -123,7 +131,10 @@ describe('ReportGenerator', () => {
       const [, reportContent] = mockFs.writeFileSync.mock.calls[0];
       const report = JSON.parse(reportContent as string);
 
-      expect(report.bundles).toEqual(mockAuditResult.bundles);
+      expect(report.bundles).toEqual({
+        server: mockAuditResult.serverBundles,
+        client: mockAuditResult.clientBundles,
+      });
       expect(report.lighthouse).toEqual(mockAuditResult.lighthouse);
       expect(report.recommendations).toEqual(mockAuditResult.recommendations);
     });
@@ -192,7 +203,7 @@ describe('ReportGenerator', () => {
       const [, htmlContent] = mockFs.writeFileSync.mock.calls[0];
       const html = htmlContent as string;
 
-      expect(html).toContain('📦 Bundle Analysis');
+      expect(html).toContain('📦 Client Bundle Analysis');
       expect(html).toContain('<table class="bundle-table">');
       expect(html).toContain('main.js');
       expect(html).toContain('vendor.js');

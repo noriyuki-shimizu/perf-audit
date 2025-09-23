@@ -16,11 +16,21 @@ export class ReportGenerator {
       },
       summary: {
         budgetStatus: result.budgetStatus,
-        totalBundles: result.bundles.length,
-        totalSize: result.bundles.reduce((sum, b) => sum + b.size, 0),
-        totalGzipSize: result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
+        server: {
+          totalBundles: result.serverBundles.length,
+          totalSize: result.serverBundles.reduce((sum, b) => sum + b.size, 0),
+          totalGzipSize: result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
+        },
+        client: {
+          totalBundles: result.clientBundles.length,
+          totalSize: result.clientBundles.reduce((sum, b) => sum + b.size, 0),
+          totalGzipSize: result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0),
+        },
       },
-      bundles: result.bundles,
+      bundles: {
+        server: result.serverBundles,
+        client: result.clientBundles,
+      },
       lighthouse: result.lighthouse,
       recommendations: result.recommendations,
     };
@@ -46,8 +56,10 @@ export class ReportGenerator {
 
   private static buildHtmlTemplate(result: AuditResult): string {
     const timestamp = new Date(result.timestamp).toLocaleString();
-    const totalSize = result.bundles.reduce((sum, b) => sum + b.size, 0);
-    const totalGzipSize = result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+    const serverTotalSize = result.serverBundles.reduce((sum, b) => sum + b.size, 0);
+    const serverTotalGzipSize = result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+    const clientTotalSize = result.clientBundles.reduce((sum, b) => sum + b.size, 0);
+    const clientTotalGzipSize = result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
 
     return `
 <!DOCTYPE html>
@@ -63,48 +75,97 @@ export class ReportGenerator {
 <body>
     <div class="container">
         <header class="header">
-            <h1>🎯 Performance Audit Report</h1>
-            <p class="timestamp">Generated: ${timestamp}</p>
+            <h1 class="header__title">🎯 Performance Audit Report</h1>
+            <p class="header__timestamp">Generated: ${timestamp}</p>
         </header>
 
+        <div class="record record--${result.budgetStatus}">
+            <h3 class="record__title">Overall Status</h3>
+            <div class="record__status-indicator">
+                ${this.getStatusIcon(result.budgetStatus)} ${result.budgetStatus.toUpperCase()}
+            </div>
+        </div>
+
         <div class="summary-cards">
-            <div class="card ${result.budgetStatus}">
-                <h3>Overall Status</h3>
-                <div class="status-indicator">
-                    ${this.getStatusIcon(result.budgetStatus)} ${result.budgetStatus.toUpperCase()}
-                </div>
+            <div class="card">
+                <h3 class="card__title">Server Total Bundles</h3>
+                <div class="card__metric">${result.serverBundles.length}</div>
             </div>
             <div class="card">
-                <h3>Total Bundles</h3>
-                <div class="metric">${result.bundles.length}</div>
-            </div>
-            <div class="card">
-                <h3>Total Size</h3>
-                <div class="metric">${formatSize(totalSize)}</div>
-                <div class="sub-metric">Gzipped: ${formatSize(totalGzipSize)}</div>
+                <h3 class="card__title">Server Total Size</h3>
+                <div class="card__metric">${formatSize(serverTotalSize)}</div>
+                <div class="card__sub-metric">Gzipped: ${formatSize(serverTotalGzipSize)}</div>
             </div>
         </div>
 
         <section class="section">
-            <h2>📦 Bundle Analysis</h2>
+            <h2 class="section__title">📦 Server Bundle Analysis</h2>
             <div class="table-container">
                 <table class="bundle-table">
                     <thead>
                         <tr>
-                            <th>Bundle</th>
-                            <th>Size</th>
-                            <th>Gzipped</th>
-                            <th>Status</th>
+                            <th class="bundle-table__header">Bundle</th>
+                            <th class="bundle-table__header">Size</th>
+                            <th class="bundle-table__header">Gzipped</th>
+                            <th class="bundle-table__header">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${
-      result.bundles.map(bundle => `
-                            <tr class="${bundle.status}">
-                                <td class="bundle-name">${bundle.name}</td>
-                                <td>${formatSize(bundle.size)}</td>
-                                <td>${bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A'}</td>
-                                <td class="status">${this.getStatusIcon(bundle.status)} ${bundle.status}</td>
+      result.serverBundles.map(bundle => `
+                            <tr class="bundle-table__record--${bundle.status}">
+                                <td class="bundle-table__data bundle-name">${bundle.name}</td>
+                                <td class="bundle-table__data">${formatSize(bundle.size)}</td>
+                                <td class="bundle-table__data">${
+        bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A'
+      }</td>
+                                <td class="bundle-table__data status">${
+        this.getStatusIcon(bundle.status)
+      } ${bundle.status}</td>
+                            </tr>
+                        `).join('')
+    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3 class="card__title">Client Total Bundles</h3>
+                <div class="card__metric">${result.clientBundles.length}</div>
+            </div>
+            <div class="card">
+                <h3 class="card__title">Client Total Size</h3>
+                <div class="card__metric">${formatSize(clientTotalSize)}</div>
+                <div class="card__sub-metric">Gzipped: ${formatSize(clientTotalGzipSize)}</div>
+            </div>
+        </div>
+
+        <section class="section">
+            <h2 class="section__title">📦 Client Bundle Analysis</h2>
+            <div class="table-container">
+                <table class="bundle-table">
+                    <thead>
+                        <tr>
+                            <th class="bundle-table__header">Bundle</th>
+                            <th class="bundle-table__header">Size</th>
+                            <th class="bundle-table__header">Gzipped</th>
+                            <th class="bundle-table__header">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${
+      result.clientBundles.map(bundle => `
+                            <tr class="bundle-table__record--${bundle.status}">
+                                <td class="bundle-table__data bundle-name">${bundle.name}</td>
+                                <td class="bundle-table__data">${formatSize(bundle.size)}</td>
+                                <td class="bundle-table__data">${
+        bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A'
+      }</td>
+                                <td class="bundle-table__data status">${
+        this.getStatusIcon(bundle.status)
+      } ${bundle.status}</td>
                             </tr>
                         `).join('')
     }
@@ -136,24 +197,28 @@ export class ReportGenerator {
             <h2>📊 Lighthouse Scores</h2>
             <div class="lighthouse-scores">
                 <div class="score-card">
-                    <h4>Performance</h4>
-                    <div class="score ${this.getScoreClass(lighthouse.performance)}">${lighthouse.performance}</div>
+                    <h4 class="score-card__title">Performance</h4>
+                    <div class="score score--${
+      this.getScoreClass(lighthouse.performance)
+    }">${lighthouse.performance}</div>
                 </div>
                 <div class="score-card">
-                    <h4>Accessibility</h4>
-                    <div class="score ${this.getScoreClass(lighthouse.accessibility || 0)}">${
+                    <h4 class="score-card__title">Accessibility</h4>
+                    <div class="score score--${this.getScoreClass(lighthouse.accessibility || 0)}">${
       lighthouse.accessibility || 'N/A'
     }</div>
                 </div>
                 <div class="score-card">
-                    <h4>Best Practices</h4>
-                    <div class="score ${this.getScoreClass(lighthouse.bestPractices || 0)}">${
+                    <h4 class="score-card__title">Best Practices</h4>
+                    <div class="score score--${this.getScoreClass(lighthouse.bestPractices || 0)}">${
       lighthouse.bestPractices || 'N/A'
     }</div>
                 </div>
                 <div class="score-card">
-                    <h4>SEO</h4>
-                    <div class="score ${this.getScoreClass(lighthouse.seo || 0)}">${lighthouse.seo || 'N/A'}</div>
+                    <h4 class="score-card__title">SEO</h4>
+                    <div class="score score--${this.getScoreClass(lighthouse.seo || 0)}">${
+      lighthouse.seo || 'N/A'
+    }</div>
                 </div>
             </div>
 
@@ -163,19 +228,19 @@ export class ReportGenerator {
                 <h3>🚀 Core Web Vitals</h3>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <h4>First Contentful Paint</h4>
+                        <h4 class="metric-card__title">First Contentful Paint</h4>
                         <div class="metric-value">${lighthouse.metrics.fcp}ms</div>
                     </div>
                     <div class="metric-card">
-                        <h4>Largest Contentful Paint</h4>
+                        <h4 class="metric-card__title">Largest Contentful Paint</h4>
                         <div class="metric-value">${lighthouse.metrics.lcp}ms</div>
                     </div>
                     <div class="metric-card">
-                        <h4>Cumulative Layout Shift</h4>
+                        <h4 class="metric-card__title">Cumulative Layout Shift</h4>
                         <div class="metric-value">${lighthouse.metrics.cls}</div>
                     </div>
                     <div class="metric-card">
-                        <h4>Time to Interactive</h4>
+                        <h4 class="metric-card__title">Time to Interactive</h4>
                         <div class="metric-value">${lighthouse.metrics.tti}ms</div>
                     </div>
                 </div>
@@ -191,7 +256,7 @@ export class ReportGenerator {
         <section class="section">
             <h2>💡 Recommendations</h2>
             <ul class="recommendations">
-                ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                ${recommendations.map(rec => `<li class="recommendations__item">${rec}</li>`).join('')}
             </ul>
         </section>
     `;
@@ -218,258 +283,273 @@ export class ReportGenerator {
 
   private static getCSS(): string {
     return `
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
 
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .header__title {
+        color: #2d3748;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header__timestamp {
+        color: #718096;
+        font-size: 1.1em;
+      }
+
+      .record {
+        text-align: center;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .record__title {
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+      }
+
+      .record__status-indicator {
+        font-size: 1.5em;
+        font-weight: bold;
+      }
+
+      .record--ok {
+        border-left: 5px solid #48bb78;
+      }
+
+      .record--warning {
+        border-left: 5px solid #ed8936;
+      }
+
+      .record--error {
+        border-left: 5px solid #f56565;
+      }
+
+      .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 16px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+
+      .card__title {
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+      }
+
+      .card__metric {
+        font-size: 2em;
+        font-weight: bold;
+        color: #2d3748;
+      }
+
+      .card__sub-metric {
+        color: #718096;
+        margin-top: 5px;
+      }
+
+      .section {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .section__title {
+        color: #2d3748;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      .bundle-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .bundle-table__header,
+      .bundle-table__data {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .bundle-table__header {
+        background: #f7fafc;
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .bundle-table__record--ok {
+        background: #f0fff4;
+      }
+
+      .bundle-table__record--warning {
+        background: #fffbf0;
+      }
+
+      .bundle-table__record--error {
+        background: #fff5f5;
+      }
+
+      .bundle-name {
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 0.9em;
+      }
+
+      .status {
+        font-weight: 600;
+      }
+
+      .lighthouse-scores {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .score-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        background: #f7fafc;
+      }
+
+      .score-card__title {
+        color: #2d3748;
+        margin-bottom: 10px;
+      }
+
+      .score {
+        font-size: 3em;
+        font-weight: bold;
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+      }
+
+      .score--good {
+        background: #48bb78;
+        color: white;
+      }
+
+      .score--average {
+        background: #ed8936;
+        color: white;
+      }
+
+      .score--poor {
+        background: #f56565;
+        color: white;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .metric-card {
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .metric-card__title {
+        color: #2d3748;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+      }
+
+      .metric-value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #4a5568;
+      }
+
+      .recommendations {
+        list-style: none;
+      }
+
+      .recommendations__item {
+        background: #f7fafc;
+        padding: 15px;
+        border-left: 4px solid #3182ce;
+        margin-bottom: 10px;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: white;
+      }
+
+      @media (max-width: 768px) {
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          padding: 10px;
         }
 
         .header h1 {
-            color: #2d3748;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .timestamp {
-            color: #718096;
-            font-size: 1.1em;
+          font-size: 2em;
         }
 
         .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .card.ok {
-            border-left: 5px solid #48bb78;
-        }
-
-        .card.warning {
-            border-left: 5px solid #ed8936;
-        }
-
-        .card.error {
-            border-left: 5px solid #f56565;
-        }
-
-        .card h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .status-indicator {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        .metric {
-            font-size: 2em;
-            font-weight: bold;
-            color: #2d3748;
-        }
-
-        .sub-metric {
-            color: #718096;
-            margin-top: 5px;
+          grid-template-columns: 1fr;
         }
 
         .section {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          padding: 20px;
         }
-
-        .section h2 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .bundle-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .bundle-table th,
-        .bundle-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .bundle-table th {
-            background: #f7fafc;
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .bundle-table tr.ok {
-            background: #f0fff4;
-        }
-
-        .bundle-table tr.warning {
-            background: #fffbf0;
-        }
-
-        .bundle-table tr.error {
-            background: #fff5f5;
-        }
-
-        .bundle-name {
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9em;
-        }
-
-        .status {
-            font-weight: 600;
-        }
-
-        .lighthouse-scores {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .score-card {
-            text-align: center;
-            padding: 20px;
-            border-radius: 8px;
-            background: #f7fafc;
-        }
-
-        .score-card h4 {
-            color: #2d3748;
-            margin-bottom: 10px;
-        }
-
-        .score {
-            font-size: 3em;
-            font-weight: bold;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-
-        .score.good {
-            background: #48bb78;
-            color: white;
-        }
-
-        .score.average {
-            background: #ed8936;
-            color: white;
-        }
-
-        .score.poor {
-            background: #f56565;
-            color: white;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .metric-card {
-            padding: 20px;
-            background: #f7fafc;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .metric-card h4 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-        }
-
-        .metric-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #4a5568;
-        }
-
-        .recommendations {
-            list-style: none;
-        }
-
-        .recommendations li {
-            background: #f7fafc;
-            padding: 15px;
-            border-left: 4px solid #3182ce;
-            margin-bottom: 10px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .summary-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .section {
-                padding: 20px;
-            }
-        }
+      }
     `;
   }
 

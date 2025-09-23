@@ -281,7 +281,6 @@ describe('analyzeCommand', () => {
     const mockInstance = vi.mocked(ConsoleReporter).mock.results[0]?.value;
     expect(mockInstance.reportBundleAnalysis).toHaveBeenCalledWith(
       expect.any(Object),
-      expect.any(Object),
       true,
     );
   });

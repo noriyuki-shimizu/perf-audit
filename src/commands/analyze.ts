@@ -153,8 +153,6 @@ const generateReports = async (
     format: options.format,
   } as BeforeReportContext);
 
-  const totalSizes = BundleAnalyzer.calculateTotalSize(result.bundles);
-
   switch (options.format) {
     case 'json':
       await generateJsonReport(result, config, pluginManager);
@@ -164,7 +162,7 @@ const generateReports = async (
       break;
     case 'console':
     default:
-      await generateConsoleReport(result, totalSizes, options, config, pluginManager);
+      await generateConsoleReport(result, options, config, pluginManager);
       break;
   }
 };
@@ -215,13 +213,12 @@ const generateHtmlReport = async (
  */
 const generateConsoleReport = async (
   result: AuditResult,
-  totalSizes: { size: number; gzipSize?: number; },
   options: AnalyzeOptions,
   config: PerfAuditConfig,
   pluginManager: PluginManager,
 ): Promise<void> => {
   const reporter = new ConsoleReporter(config);
-  reporter.reportBundleAnalysis(result, totalSizes, options.details || false);
+  reporter.reportBundleAnalysis(result, options.details || false);
   await pluginManager.executeHook('afterReport', {
     result,
     outputPath: 'console',

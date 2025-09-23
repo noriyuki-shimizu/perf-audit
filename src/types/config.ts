@@ -137,7 +137,8 @@ export interface PerformanceMetrics {
 /** 監査結果 */
 export interface AuditResult {
   timestamp: string;
-  bundles: BundleInfo[];
+  serverBundles: BundleInfo[];
+  clientBundles: BundleInfo[];
   lighthouse?: PerformanceMetrics;
   recommendations: string[];
   budgetStatus: 'ok' | 'warning' | 'error';

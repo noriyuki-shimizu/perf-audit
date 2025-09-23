@@ -79,9 +79,16 @@ export interface TrendAnalysis {
 /** CI Reporter types */
 export interface CISummary {
   status: 'success' | 'warning' | 'error';
-  totalSize: string;
-  totalGzipSize: string;
-  bundleCount: number;
+  server: {
+    totalSize: string;
+    totalGzipSize: string;
+    bundleCount: number;
+  };
+  client: {
+    totalSize: string;
+    totalGzipSize: string;
+    bundleCount: number;
+  };
   violations: Array<{
     name: string;
     size: string;

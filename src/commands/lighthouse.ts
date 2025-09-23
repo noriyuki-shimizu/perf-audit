@@ -39,7 +39,8 @@ export async function lighthouseCommand(url: string, options: CommandLighthouseO
     // Create audit result
     const auditResult: AuditResult = {
       timestamp: getCurrentTimestamp(),
-      bundles: [], // No bundle data for lighthouse-only audits
+      serverBundles: [], // No bundle data for lighthouse-only audits
+      clientBundles: [], // No bundle data for lighthouse-only audits
       lighthouse: result,
       recommendations: generatePerformanceRecommendations(result),
       budgetStatus,
