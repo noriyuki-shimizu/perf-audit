@@ -63,9 +63,12 @@ export const createAuditResult = (
   config: PerfAuditConfig,
   recommendations: string[] = [],
 ): AuditResult => {
+  const serverBundles = bundlesWithBudgets.filter(b => b.type === 'server');
+  const clientBundles = bundlesWithBudgets.filter(b => b.type === 'client');
   return {
     timestamp: getCurrentTimestamp(),
-    bundles: bundlesWithBudgets,
+    serverBundles,
+    clientBundles,
     recommendations,
     budgetStatus: getBudgetStatus(bundlesWithBudgets),
     analysisType: config.analysis.target,

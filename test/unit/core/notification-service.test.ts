@@ -69,7 +69,8 @@ describe('NotificationService', () => {
         ],
         result: {
           timestamp: '2023-01-01T00:00:00.000Z',
-          bundles: [],
+          serverBundles: [],
+          clientBundles: [],
           recommendations: [],
           budgetStatus: 'warning' as const,
           analysisType: 'client' as const,
@@ -104,7 +105,8 @@ describe('NotificationService', () => {
         changes: [],
         result: {
           timestamp: '2023-01-01T00:00:00.000Z',
-          bundles: [],
+          serverBundles: [],
+          clientBundles: [],
           recommendations: [],
           budgetStatus: 'ok' as const,
           analysisType: 'client' as const,
@@ -130,7 +132,8 @@ describe('NotificationService', () => {
         changes: [],
         result: {
           timestamp: '2023-01-01T00:00:00.000Z',
-          bundles: [],
+          serverBundles: [],
+          clientBundles: [],
           recommendations: [],
           budgetStatus: 'ok' as const,
           analysisType: 'client' as const,

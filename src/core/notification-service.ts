@@ -136,13 +136,23 @@ export class NotificationService {
           color: type === 'regression' ? 'danger' : 'good',
           fields: [
             {
-              title: 'Total Bundles',
-              value: result.bundles.length.toString(),
+              title: 'Server Total Bundles',
+              value: result.serverBundles.length.toString(),
               short: true,
             },
             {
-              title: 'Total Size',
-              value: formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0)),
+              title: 'Server Total Size',
+              value: formatSize(result.serverBundles.reduce((sum, b) => sum + b.size, 0)),
+              short: true,
+            },
+            {
+              title: 'Client Total Bundles',
+              value: result.clientBundles.length.toString(),
+              short: true,
+            },
+            {
+              title: 'Client Total Size',
+              value: formatSize(result.clientBundles.reduce((sum, b) => sum + b.size, 0)),
               short: true,
             },
           ],
@@ -186,13 +196,23 @@ export class NotificationService {
 
     fields.push(
       {
-        name: 'Total Bundles',
-        value: result.bundles.length.toString(),
+        name: 'Server Total Bundles',
+        value: result.serverBundles.length.toString(),
         inline: true,
       },
       {
-        name: 'Total Size',
-        value: formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0)),
+        name: 'Server Total Size',
+        value: formatSize(result.serverBundles.reduce((sum, b) => sum + b.size, 0)),
+        inline: true,
+      },
+      {
+        name: 'Client Total Bundles',
+        value: result.clientBundles.length.toString(),
+        inline: true,
+      },
+      {
+        name: 'Client Total Size',
+        value: formatSize(result.clientBundles.reduce((sum, b) => sum + b.size, 0)),
         inline: true,
       },
       {
@@ -238,8 +258,10 @@ export class NotificationService {
       content += '\n';
     }
 
-    content += `Total Bundles: ${result.bundles.length}\n`;
-    content += `Total Size: ${formatSize(result.bundles.reduce((sum, b) => sum + b.size, 0))}\n`;
+    content += `Server Total Bundles: ${result.serverBundles.length}\n`;
+    content += `Server Total Size: ${formatSize(result.serverBundles.reduce((sum, b) => sum + b.size, 0))}\n`;
+    content += `Client Total Bundles: ${result.clientBundles.length}\n`;
+    content += `Client Total Size: ${formatSize(result.clientBundles.reduce((sum, b) => sum + b.size, 0))}\n`;
     content += `Budget Status: ${result.budgetStatus.toUpperCase()}\n`;
     content += `Timestamp: ${new Date(result.timestamp).toLocaleString()}\n`;
 

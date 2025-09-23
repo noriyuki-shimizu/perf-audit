@@ -62,7 +62,7 @@ export const saveBuildData = async (
       commitHash: ciContext.commitHash,
       url: additionalData?.url,
       device: additionalData?.device,
-      bundles: result.bundles,
+      bundles: [...result.serverBundles, ...result.clientBundles],
       metrics: additionalData?.metrics,
       recommendations: result.recommendations,
     });

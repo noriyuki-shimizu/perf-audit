@@ -17,14 +17,23 @@ describe('ciReporterPlugin', () => {
 
   const mockAnalysisData = {
     result: {
-      bundles: [
-        { name: 'main.js', size: 100000, gzipSize: 30000, status: 'ok' },
-        { name: 'vendor.js', size: 200000, gzipSize: 60000, status: 'warning' },
-        { name: 'large.js', size: 300000, gzipSize: 90000, status: 'error' },
+      timestamp: '2023-01-01T00:00:00.000Z',
+      serverBundles: [
+        { name: 'server.js', size: 150000, gzipSize: 45000, status: 'ok', type: 'server' as const },
       ],
-      budgetStatus: 'warning',
+      clientBundles: [
+        { name: 'main.js', size: 100000, gzipSize: 30000, status: 'ok', type: 'client' as const },
+        { name: 'vendor.js', size: 200000, gzipSize: 60000, status: 'warning', type: 'client' as const },
+        { name: 'large.js', size: 300000, gzipSize: 90000, status: 'error', type: 'client' as const },
+      ],
+      budgetStatus: 'warning' as const,
+      analysisType: 'both' as const,
+      recommendations: [],
       lighthouse: {
         performance: 85,
+        accessibility: 90,
+        bestPractices: 88,
+        seo: 92,
       },
     },
   };
@@ -102,7 +111,8 @@ describe('ciReporterPlugin', () => {
       const summary = mockContext.store.get('ciSummary');
       expect(summary).toBeDefined();
       expect(summary.status).toBe('warning');
-      expect(summary.bundleCount).toBe(3);
+      expect(summary.server.bundleCount).toBe(1);
+      expect(summary.client.bundleCount).toBe(3);
     });
 
     it('should output GitHub Actions summary when in GitHub Actions', async () => {
@@ -174,10 +184,14 @@ describe('ciReporterPlugin', () => {
       process.env.CI = 'true';
       const dataWithoutViolations = {
         result: {
-          bundles: [
-            { name: 'main.js', size: 50000, gzipSize: 15000, status: 'ok' },
+          timestamp: '2023-01-01T00:00:00.000Z',
+          serverBundles: [],
+          clientBundles: [
+            { name: 'main.js', size: 50000, gzipSize: 15000, status: 'ok', type: 'client' as const },
           ],
-          budgetStatus: 'ok',
+          budgetStatus: 'ok' as const,
+          analysisType: 'client' as const,
+          recommendations: [],
         },
       };
 
@@ -192,8 +206,12 @@ describe('ciReporterPlugin', () => {
       process.env.CI = 'true';
       const dataWithError = {
         result: {
-          bundles: [{ name: 'main.js', size: 100000, gzipSize: 30000, status: 'ok' }],
-          budgetStatus: 'error',
+          timestamp: '2023-01-01T00:00:00.000Z',
+          serverBundles: [],
+          clientBundles: [{ name: 'main.js', size: 100000, gzipSize: 30000, status: 'ok', type: 'client' as const }],
+          budgetStatus: 'error' as const,
+          analysisType: 'client' as const,
+          recommendations: [],
         },
       };
 
@@ -207,11 +225,15 @@ describe('ciReporterPlugin', () => {
       process.env.CI = 'true';
       const dataWithLargeBundles = {
         result: {
-          bundles: [
-            { name: 'large1.js', size: 200000, gzipSize: 60000, status: 'ok' },
-            { name: 'large2.js', size: 180000, gzipSize: 54000, status: 'ok' },
+          timestamp: '2023-01-01T00:00:00.000Z',
+          serverBundles: [],
+          clientBundles: [
+            { name: 'large1.js', size: 200000, gzipSize: 60000, status: 'ok', type: 'client' as const },
+            { name: 'large2.js', size: 180000, gzipSize: 54000, status: 'ok', type: 'client' as const },
           ],
-          budgetStatus: 'ok',
+          budgetStatus: 'ok' as const,
+          analysisType: 'client' as const,
+          recommendations: [],
         },
       };
 
@@ -229,13 +251,18 @@ describe('ciReporterPlugin', () => {
       process.env.CI = 'true';
       const dataWithSmallBundles = {
         result: {
-          bundles: Array.from({ length: 6 }, (_, i) => ({
+          timestamp: '2023-01-01T00:00:00.000Z',
+          serverBundles: [],
+          clientBundles: Array.from({ length: 6 }, (_, i) => ({
             name: `small${i}.js`,
             size: 5000,
             gzipSize: 1500,
-            status: 'ok',
+            status: 'ok' as const,
+            type: 'client' as const,
           })),
-          budgetStatus: 'ok',
+          budgetStatus: 'ok' as const,
+          analysisType: 'client' as const,
+          recommendations: [],
         },
       };
 

@@ -60,8 +60,10 @@ export class CIIntegration {
   }
 
   static async generateGitHubActionsSummary(result: AuditResult): Promise<string> {
-    const totalSize = result.bundles.reduce((sum, b) => sum + b.size, 0);
-    const totalGzipSize = result.bundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+    const serverTotalSize = result.serverBundles.reduce((sum, b) => sum + b.size, 0);
+    const serverTotalGzipSize = result.serverBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
+    const clientTotalSize = result.clientBundles.reduce((sum, b) => sum + b.size, 0);
+    const clientTotalGzipSize = result.clientBundles.reduce((sum, b) => sum + (b.gzipSize || 0), 0);
 
     const statusEmoji = {
       ok: '✅',
@@ -71,15 +73,28 @@ export class CIIntegration {
 
     let summary = `# 🎯 Performance Audit Report\n\n`;
     summary += `**Status:** ${statusEmoji[result.budgetStatus]} ${result.budgetStatus.toUpperCase()}\n`;
-    summary += `**Total Size:** ${formatSize(totalSize)} (${formatSize(totalGzipSize)} gzipped)\n`;
-    summary += `**Bundles:** ${result.bundles.length}\n\n`;
+    summary += `**Server Total Size:** ${formatSize(serverTotalSize)} (${formatSize(serverTotalGzipSize)} gzipped)\n`;
+    summary += `**Server Bundles:** ${result.serverBundles.length}\n`;
+    summary += `**Client Total Size:** ${formatSize(clientTotalSize)} (${formatSize(clientTotalGzipSize)} gzipped)\n`;
+    summary += `**Client Bundles:** ${result.clientBundles.length}\n\n`;
 
-    // Bundle breakdown
-    summary += `## 📦 Bundle Analysis\n\n`;
+    // Server Bundle breakdown
+    summary += `## 📦 Server Bundle Analysis\n\n`;
     summary += `| Bundle | Size | Gzipped | Status |\n`;
     summary += `|--------|------|---------|--------|\n`;
 
-    result.bundles.forEach(bundle => {
+    result.serverBundles.forEach(bundle => {
+      const gzipText = bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A';
+      const statusIcon = statusEmoji[bundle.status];
+      summary += `| \`${bundle.name}\` | ${formatSize(bundle.size)} | ${gzipText} | ${statusIcon} ${bundle.status} |\n`;
+    });
+
+    // Client Bundle breakdown
+    summary += `## 📦 Client Bundle Analysis\n\n`;
+    summary += `| Bundle | Size | Gzipped | Status |\n`;
+    summary += `|--------|------|---------|--------|\n`;
+
+    result.clientBundles.forEach(bundle => {
       const gzipText = bundle.gzipSize ? formatSize(bundle.gzipSize) : 'N/A';
       const statusIcon = statusEmoji[bundle.status];
       summary += `| \`${bundle.name}\` | ${formatSize(bundle.size)} | ${gzipText} | ${statusIcon} ${bundle.status} |\n`;
@@ -136,10 +151,26 @@ export class CIIntegration {
   static generateJunitXml(result: AuditResult): string {
     const testCases: string[] = [];
 
-    // Bundle budget tests
-    result.bundles.forEach(bundle => {
-      const testName = `Bundle size check: ${bundle.name}`;
-      const className = 'BundleBudgetTests';
+    // Server Bundle budget tests
+    result.serverBundles.forEach(bundle => {
+      const testName = `Server Bundle size check: ${bundle.name}`;
+      const className = 'ServerBundleBudgetTests';
+
+      if (bundle.status === 'ok') {
+        testCases.push(`    <testcase name="${testName}" classname="${className}" time="0"/>`);
+      } else {
+        const message = `Bundle ${bundle.name} exceeds budget: ${formatSize(bundle.size)}`;
+        const type = bundle.status === 'error' ? 'failure' : 'error';
+        testCases.push(`    <testcase name="${testName}" classname="${className}" time="0">
+      <${type} message="${message}"/>
+    </testcase>`);
+      }
+    });
+
+    // Client Bundle budget tests
+    result.clientBundles.forEach(bundle => {
+      const testName = `Client Bundle size check: ${bundle.name}`;
+      const className = 'ClientBundleBudgetTests';
 
       if (bundle.status === 'ok') {
         testCases.push(`    <testcase name="${testName}" classname="${className}" time="0"/>`);
@@ -181,11 +212,18 @@ ${testCases.join('\n')}
 
     // GitHub Actions annotations
     if (ciContext.provider === 'github') {
-      result.bundles.forEach(bundle => {
+      result.serverBundles.forEach(bundle => {
         if (bundle.status === 'error') {
-          console.log(`::error::Bundle ${bundle.name} exceeds size budget: ${formatSize(bundle.size)}`);
+          console.log(`::error::Server Bundle ${bundle.name} exceeds size budget: ${formatSize(bundle.size)}`);
         } else if (bundle.status === 'warning') {
-          console.log(`::warning::Bundle ${bundle.name} approaching size budget: ${formatSize(bundle.size)}`);
+          console.log(`::warning::Server Bundle ${bundle.name} approaching size budget: ${formatSize(bundle.size)}`);
+        }
+      });
+      result.clientBundles.forEach(bundle => {
+        if (bundle.status === 'error') {
+          console.log(`::error::Client Bundle ${bundle.name} exceeds size budget: ${formatSize(bundle.size)}`);
+        } else if (bundle.status === 'warning') {
+          console.log(`::warning::Client Bundle ${bundle.name} approaching size budget: ${formatSize(bundle.size)}`);
         }
       });
 
