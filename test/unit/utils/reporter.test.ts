@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuditResult, PerfAuditConfig } from '../../../src/types/config.ts';
 import { ConsoleReporter } from '../../../src/utils/reporter.ts';
 
