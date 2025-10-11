@@ -95,7 +95,7 @@
 
 ```javascript
 // perf-audit.config.js
-export default {
+module.exports = {
   // プロジェクト設定
   project: {
     // クライアントサイドの設定

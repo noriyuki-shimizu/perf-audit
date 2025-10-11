@@ -258,7 +258,7 @@ Webダッシュボードでは以下の機能を提供：
 ### 設定例（SSR対応）
 
 ```javascript
-export default {
+module.exports = {
   // プロジェクト設定
   project: {
     // クライアントサイドの設定

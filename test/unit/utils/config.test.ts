@@ -91,7 +91,7 @@ describe('config utils', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         DEFAULT_CONFIG_FILE,
-        expect.stringContaining('export default'),
+        expect.stringContaining('module.exports'),
       );
       expect(Logger.success).toHaveBeenCalledWith(`Configuration file created: ${DEFAULT_CONFIG_FILE}`);
     });
@@ -105,7 +105,7 @@ describe('config utils', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         customPath,
-        expect.stringContaining('export default'),
+        expect.stringContaining('module.exports'),
       );
       expect(Logger.success).toHaveBeenCalledWith(`Configuration file created: ${customPath}`);
     });
@@ -119,7 +119,7 @@ describe('config utils', () => {
 
       generateConfigFile();
 
-      expect(writtenContent).toContain('export default');
+      expect(writtenContent).toContain('module.exports');
       expect(writtenContent).toContain('project:');
       expect(writtenContent).toContain('budgets:');
       expect(writtenContent).toContain('analysis:');

@@ -124,7 +124,7 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
  * @param outputPath - 出力先のパス（デフォルトは 'perf-audit.config.js'）
  */
 export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): void {
-  const configContent = `export default {
+  const configContent = `module.exports = {
   // プロジェクト設定
   project: {
     // クライアントサイドの設定
