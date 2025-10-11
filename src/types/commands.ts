@@ -39,13 +39,6 @@ export interface CommandLighthouseOptions {
   format: 'json' | 'console';
 }
 
-/** Watch options interface */
-export interface WatchOptions {
-  interval?: number;
-  notify?: boolean;
-  silent?: boolean;
-}
-
 /** Analyze command types */
 export interface AnalysisContext {
   config: unknown;
@@ -82,44 +75,6 @@ export interface AfterReportContext {
 export interface ErrorContext {
   error: Error;
   context: string;
-}
-
-/** Watch command types */
-export interface BundleChange {
-  /** Bundle name */
-  name: string;
-  /** Previous bundle size in bytes */
-  previousSize: number;
-  /** Current bundle size in bytes */
-  currentSize: number;
-  /** Size change delta in bytes */
-  delta: number;
-  /** Percentage change */
-  percentage: number;
-  /** Whether this change is a regression */
-  isRegression: boolean;
-}
-
-/** Performance comparison interface */
-export interface PerformanceComparison {
-  /** Array of significant bundle changes */
-  significantChanges: BundleChange[];
-  /** Whether any regressions were detected */
-  hasRegression: boolean;
-  /** Whether any improvements were detected */
-  hasImprovement: boolean;
-  /** Total size change across all bundles */
-  totalSizeChange: number;
-}
-
-/** Watch command state interface */
-export interface WatchState {
-  /** Whether analysis is currently running */
-  isAnalyzing: boolean;
-  /** Timestamp of last analysis */
-  lastAnalysisTime: number;
-  /** Baseline audit result for comparison */
-  baseline: AuditResult | null;
 }
 
 /** Dashboard command types */

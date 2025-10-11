@@ -8,7 +8,6 @@ import { dashboardCommand } from '../commands/dashboard.ts';
 import { historyCommand } from '../commands/history.ts';
 import { initCommand } from '../commands/init.ts';
 import { lighthouseCommand } from '../commands/lighthouse.ts';
-import { watchCommand } from '../commands/watch.ts';
 import { DEFAULT_CLI_OPTIONS, DEFAULT_HOST, DEFAULT_PORT } from '../constants/server.ts';
 import { Logger } from '../utils/logger.ts';
 import { getPackageJson } from '../utils/package.ts';
@@ -30,7 +29,6 @@ Examples:
   $ perf-audit budget                   Check performance budgets
   $ perf-audit lighthouse <url>         Run Lighthouse audit
   $ perf-audit history                  Show performance trends
-  $ perf-audit watch                    Watch for changes
   $ perf-audit dashboard                Start web dashboard
   $ perf-audit clean                    Clean old data
 
@@ -84,22 +82,6 @@ program
     historyCommand({
       days: parseInt(options.days),
       format: options.format,
-    });
-  });
-
-// Watch command
-program
-  .command('watch')
-  .description('Watch for changes and analyze performance in real-time')
-  .option('--interval <ms>', 'Debounce interval in milliseconds', DEFAULT_CLI_OPTIONS.WATCH_INTERVAL)
-  .option('--threshold <kb>', 'Size change threshold in KB', DEFAULT_CLI_OPTIONS.WATCH_THRESHOLD)
-  .option('--notify', 'Enable notifications')
-  .option('--silent', 'Reduce output verbosity')
-  .action(options => {
-    watchCommand({
-      interval: parseInt(options.interval),
-      notify: options.notify,
-      silent: options.silent,
     });
   });
 
