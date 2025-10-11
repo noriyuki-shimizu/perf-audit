@@ -21,8 +21,8 @@ const { BundleAnalyzer } = await import('../../../src/core/bundle-analyzer.ts');
 describe('bundle utils', () => {
   const mockConfig: PerfAuditConfig = {
     project: {
-      client: { outputPath: 'dist' },
-      server: { outputPath: 'dist-server' },
+      client: { outputPath: 'dist/client' },
+      server: { outputPath: 'dist/server' },
     },
     budgets: {
       client: { bundles: { main: '100KB', vendor: '200KB', total: '300KB' } },

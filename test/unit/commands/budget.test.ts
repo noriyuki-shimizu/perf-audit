@@ -33,10 +33,10 @@ vi.mock('../../../src/utils/config.ts', () => ({
     },
     project: {
       client: {
-        outputPath: 'dist',
+        outputPath: 'dist/client',
       },
       server: {
-        outputPath: 'dist-server',
+        outputPath: 'dist/server',
       },
     },
     budgets: {
@@ -161,10 +161,10 @@ describe('budgetCommand', () => {
       },
       project: {
         client: {
-          outputPath: 'dist',
+          outputPath: 'dist/client',
         },
         server: {
-          outputPath: 'dist-server',
+          outputPath: 'dist/server',
         },
       },
       budgets: {

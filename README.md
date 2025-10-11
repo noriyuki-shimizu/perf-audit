@@ -263,7 +263,7 @@ export default {
   project: {
     // クライアントサイドの設定
     client: {
-      outputPath: './dist/client',
+      outputPath: './dist',
     },
     // サーバーサイドの設定（SSR対応）
     server: {

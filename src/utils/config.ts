@@ -129,7 +129,7 @@ export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): vo
   project: {
     // クライアントサイドの設定
     client: {
-      outputPath: './dist',
+      outputPath: './dist/client',
     },
 
     // サーバーサイドの設定（SSR対応）

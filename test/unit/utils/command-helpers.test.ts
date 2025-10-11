@@ -64,8 +64,8 @@ vi.mock('../../../src/utils/ci-integration.ts', () => ({
 vi.mock('../../../src/utils/config.ts', () => ({
   loadConfig: vi.fn().mockResolvedValue({
     project: {
-      client: { outputPath: 'dist' },
-      server: { outputPath: 'dist-server' },
+      client: { outputPath: 'dist/client' },
+      server: { outputPath: 'dist/server' },
     },
     budgets: {
       client: { bundles: { main: '100KB', vendor: '200KB', total: '300KB' } },
@@ -86,8 +86,8 @@ vi.mock('../../../src/utils/config.ts', () => ({
 
 const mockConfig = {
   project: {
-    client: { outputPath: 'dist' },
-    server: { outputPath: 'dist-server' },
+    client: { outputPath: 'dist/client' },
+    server: { outputPath: 'dist/server' },
   },
   budgets: {
     client: { bundles: { main: '100KB', vendor: '200KB', total: '300KB' } },

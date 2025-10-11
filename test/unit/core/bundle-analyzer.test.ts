@@ -39,7 +39,7 @@ describe('BundleAnalyzer', () => {
   describe('constructor', () => {
     it('should initialize with options', () => {
       const options: AnalyzeOptions = {
-        outputPath: 'dist',
+        outputPath: 'dist/client',
         gzip: true,
         ignorePaths: ['**/test.js'],
       };
@@ -186,7 +186,7 @@ describe('BundleAnalyzer', () => {
       });
 
       const options: AnalyzeOptions = {
-        outputPath: 'dist',
+        outputPath: 'dist/client',
         gzip: false,
         ignorePaths: [],
       };
