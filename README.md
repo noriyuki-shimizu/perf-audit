@@ -121,21 +121,7 @@ perf-audit history [オプション]
 perf-audit history --days 14 --format json
 ```
 
-### 6. リアルタイム監視
-
-```bash
-perf-audit watch [オプション]
-```
-
-オプション:
-
-- `--interval <ms>`: デバウンス間隔（ミリ秒） [デフォルト: 1000]
-- `--notify`: 通知を有効化
-- `--silent`: 出力の冗長性を削減
-
-ファイルの変更を監視し、リアルタイムでパフォーマンス分析を実行します。
-
-### 7. Webダッシュボード（SSR対応）
+### 6. Webダッシュボード（SSR対応）
 
 ```bash
 perf-audit dashboard [オプション]
@@ -269,16 +255,6 @@ Webダッシュボードでは以下の機能を提供：
 | `formats`   | string[] | `['console', 'json', 'html']` | 利用可能な出力形式       |
 | `outputDir` | string   | `'./performance-reports'`     | レポート出力ディレクトリ |
 
-### 通知設定 (`notifications`)
-
-#### Slack通知 (`notifications.slack`)
-
-| 項目        | 型     | 説明                                   |
-| ----------- | ------ | -------------------------------------- |
-| `webhook`   | string | SlackのWebhook URL（環境変数推奨）     |
-| `channel`   | string | 通知先チャンネル                       |
-| `threshold` | string | 通知レベル (`error`, `warning`, `all`) |
-
 ### 設定例（SSR対応）
 
 ```javascript
@@ -334,15 +310,6 @@ export default {
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-  },
-
-  // 通知設定
-  notifications: {
-    slack: {
-      webhook: process.env.SLACK_WEBHOOK,
-      channel: '#performance',
-      threshold: 'warning',
-    },
   },
 };
 ```

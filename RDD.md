@@ -81,12 +81,6 @@
   - `--all`: 全データを削除
   - `--force`: 確認プロンプトをスキップ
 
-#### `perf-audit watch`
-
-- ファイル監視モード
-- リアルタイムサイズ計算
-- 増分表示
-
 #### `perf-audit dashboard`
 
 - Webダッシュボード起動
@@ -150,14 +144,6 @@ export default {
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-  },
-  // 通知設定
-  notifications: {
-    slack: {
-      webhook: process.env.SLACK_WEBHOOK,
-      channel: '#performance',
-      threshold: 'warning', // error, warning, all
-    },
   },
 };
 ```
@@ -332,10 +318,9 @@ perf-audit clean --all --force
 
 ### Phase 3
 
-1. `watch` モード
-2. プラグインシステム
-3. 通知機能 (Slack等)
-4. Webダッシュボード
+1. プラグインシステム
+2. 通知機能 (Slack等)
+3. Webダッシュボード
 
 ## テスト要件
 

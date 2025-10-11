@@ -116,7 +116,6 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
     },
     analysis: { ...defaultConfig.analysis, ...userConfig.analysis },
     reports: { ...defaultConfig.reports, ...userConfig.reports },
-    notifications: userConfig.notifications,
   };
 }
 
@@ -130,7 +129,7 @@ export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): vo
   project: {
     // クライアントサイドの設定
     client: {
-      outputPath: './dist',
+      outputPath: './dist/client',
     },
 
     // サーバーサイドの設定（SSR対応）
@@ -178,36 +177,6 @@ export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): vo
   reports: {
     formats: ['console', 'json', 'html'],
     outputDir: './performance-reports',
-  },
-
-  // 通知設定
-  notifications: {
-    slack: {
-      webhook: process.env.SLACK_WEBHOOK,
-      channel: '#performance',
-      username: 'perf-audit-bot'
-    },
-    discord: {
-      webhook: process.env.DISCORD_WEBHOOK
-    },
-    email: {
-      smtp: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      },
-      from: 'performance@yourcompany.com',
-      to: ['team@yourcompany.com']
-    },
-    thresholds: {
-      sizeIncrease: 10, // KB
-      percentageIncrease: 5, // %
-      budgetViolation: true
-    }
   },
 
   // プラグイン設定

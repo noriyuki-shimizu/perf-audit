@@ -7,4 +7,3 @@ export * from './lighthouse.ts';
 export * from './metrics.ts';
 export * from './paths.ts';
 export * from './server.ts';
-export * from './watch.ts';

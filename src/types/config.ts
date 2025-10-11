@@ -70,43 +70,12 @@ export interface ReportConfig {
   outputDir: string;
 }
 
-/** 通知の設定 */
-export interface NotificationConfig {
-  slack?: {
-    webhook: string;
-    channel: string;
-    username?: string;
-  };
-  discord?: {
-    webhook: string;
-  };
-  email?: {
-    smtp: {
-      host: string;
-      port: number;
-      secure: boolean;
-      auth: {
-        user: string;
-        pass: string;
-      };
-    };
-    from: string;
-    to: string[];
-  };
-  thresholds?: {
-    sizeIncrease: number; // KB
-    percentageIncrease: number; // %
-    budgetViolation: boolean;
-  };
-}
-
 /** パフォーマンス監査の全体設定 */
 export interface PerfAuditConfig {
   project: ProjectConfig;
   budgets: BudgetConfig;
   analysis: AnalysisConfig;
   reports: ReportConfig;
-  notifications?: NotificationConfig;
   plugins?: import('./plugin.ts').PluginConfig[];
 }
 

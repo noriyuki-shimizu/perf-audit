@@ -58,10 +58,10 @@ vi.mock('../../../src/utils/config.ts', () => ({
     },
     project: {
       client: {
-        outputPath: 'dist',
+        outputPath: 'dist/client',
       },
       server: {
-        outputPath: 'dist-server',
+        outputPath: 'dist/server',
       },
     },
     budgets: {
@@ -143,7 +143,7 @@ describe('analyzeCommand', () => {
     await analyzeCommand(options);
 
     expect(mockBundleAnalyzer).toHaveBeenCalledWith({
-      outputPath: 'dist',
+      outputPath: 'dist/client',
       gzip: true,
       ignorePaths: [],
     });
@@ -186,7 +186,7 @@ describe('analyzeCommand', () => {
           outputPath: 'dist',
         },
         server: {
-          outputPath: 'dist-server',
+          outputPath: 'dist/server',
         },
       },
       budgets: {
