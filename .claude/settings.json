@@ -17,7 +17,7 @@
       "Bash(gh pr diff:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(volta:*)",
+      "Bash(proto:*)",
       "mcp__serena__check_onboarding_performed",
       "mcp__serena__delete_memory",
       "mcp__serena__find_file",

@@ -527,7 +527,7 @@ jobs:
 
 ### 事前準備
 
-[volta](https://docs.volta.sh/guide/getting-started) のインストール必須
+[proto](https://moonrepo.dev/docs/proto) のインストール必須
 
 ### 各種コマンド
 
