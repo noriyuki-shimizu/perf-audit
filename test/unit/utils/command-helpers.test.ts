@@ -50,7 +50,7 @@ vi.mock('../../../src/core/plugin-system.ts', () => ({
     executeHook = mockPluginManagerInstance.executeHook;
     unloadPlugins = mockPluginManagerInstance.unloadPlugins;
 
-    constructor(config: any) {
+    constructor() {
       // constructor logic if needed
     }
   },

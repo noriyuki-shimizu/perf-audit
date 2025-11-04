@@ -249,5 +249,4 @@ describe('cleanCommand', () => {
       expect(exitSpy).toHaveBeenCalledWith(1);
     });
   });
-
 });

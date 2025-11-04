@@ -69,7 +69,7 @@ vi.mock('../../../src/utils/config.ts', () => ({
 }));
 
 vi.mock('../../../src/utils/bundle.ts', () => ({
-  applyBudgetsToAllBundles: vi.fn((bundles) => bundles.map((b: never) => ({ ...b, status: 'ok' }))),
+  applyBudgetsToAllBundles: vi.fn(bundles => bundles.map((b: never) => ({ ...b, status: 'ok' }))),
   getBudgetStatus: vi.fn().mockReturnValue('ok'),
 }));
 
