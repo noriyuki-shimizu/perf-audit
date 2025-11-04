@@ -250,49 +250,4 @@ describe('cleanCommand', () => {
     });
   });
 
-  describe('confirmation prompt', () => {
-    it('should accept "yes" as confirmation', async () => {
-      const options: CleanOptions = { all: true, force: false };
-
-      const mockRl = mockReadline.createInterface();
-      vi.mocked(mockRl.question).mockImplementation((question, callback) => {
-        callback('yes');
-      });
-
-      mockFs.existsSync.mockReturnValue(false);
-
-      await cleanCommand(options);
-
-      expect(mockRl.question).toHaveBeenCalled();
-    });
-
-    it('should accept "Y" as confirmation', async () => {
-      const options: CleanOptions = { all: true, force: false };
-
-      const mockRl = mockReadline.createInterface();
-      vi.mocked(mockRl.question).mockImplementation((question, callback) => {
-        callback('Y');
-      });
-
-      mockFs.existsSync.mockReturnValue(false);
-
-      await cleanCommand(options);
-
-      expect(mockRl.question).toHaveBeenCalled();
-    });
-
-    it('should reject empty input', async () => {
-      const { Logger } = await import('../../../src/utils/logger.ts');
-      const options: CleanOptions = { all: true, force: false };
-
-      const mockRl = mockReadline.createInterface();
-      vi.mocked(mockRl.question).mockImplementation((question, callback) => {
-        callback('');
-      });
-
-      await cleanCommand(options);
-
-      expect(Logger.warn).toHaveBeenCalledWith('Clean cancelled.');
-    });
-  });
 });

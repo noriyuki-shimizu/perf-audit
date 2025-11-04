@@ -34,7 +34,7 @@ export interface BuildRepository {
   /**
    * トレンドデータを取得
    */
-  getTrendData(days?: number): Promise<TrendData[]>;
+  getTrendData(days?: number, orderBy?: 'ASC' | 'DESC'): Promise<TrendData[]>;
 
   /**
    * 古いビルドをクリーンアップ

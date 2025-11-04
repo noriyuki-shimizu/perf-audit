@@ -89,7 +89,7 @@ export class SqliteBuildRepository implements BuildRepository {
     return this.db.all<BuildRecord>(query, [startDate, endDate]);
   }
 
-  getTrendData(days = 30): Promise<TrendData[]> {
+  getTrendData(days = 30, orderBy: 'ASC' | 'DESC' = 'ASC'): Promise<TrendData[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     const cutoffDateStr = cutoffDate.toISOString();
@@ -110,7 +110,7 @@ export class SqliteBuildRepository implements BuildRepository {
       LEFT JOIN metrics m ON b.id = m.build_id
       WHERE datetime(b.timestamp) > datetime(?)
       GROUP BY DATE(b.timestamp), type
-      ORDER BY date ASC
+      ORDER BY date ${orderBy}
     `;
 
     return this.db.all<TrendData>(query, [cutoffDateStr]);
