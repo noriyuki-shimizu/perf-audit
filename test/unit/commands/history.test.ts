@@ -81,7 +81,8 @@ describe('historyCommand', () => {
 
     const { Logger } = vi.mocked(await import('../../../src/utils/logger.ts'));
     expect(Logger.title).toHaveBeenCalledWith('Performance History (Last 30 days)');
-    expect(Logger.section).toHaveBeenCalledWith('Bundle Size Trend');
+    expect(Logger.section).toHaveBeenCalledWith('Server Bundle Size Trend');
+    expect(Logger.section).toHaveBeenCalledWith('Client Bundle Size Trend');
     expect(Logger.section).toHaveBeenCalledWith('Recent Builds');
     expect(Logger.section).toHaveBeenCalledWith('Lighthouse Score (Core Web Vitals Trend)');
     expect(Logger.section).toHaveBeenCalledWith('Summary');

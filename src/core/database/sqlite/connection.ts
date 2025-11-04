@@ -65,14 +65,28 @@ export class SqliteConnection implements DatabaseConnection {
       return callback();
     }
 
-    const txn = this.db.transaction(callback);
     this.inTransaction = true;
 
     try {
-      const result = txn();
+      // トランザクション開始
+      this.db.exec('BEGIN TRANSACTION');
+
+      // コールバック実行（async/awaitに対応）
+      const result = await callback();
+
+      // トランザクションコミット
+      this.db.exec('COMMIT');
+
       this.inTransaction = false;
       return result;
     } catch (error) {
+      // ロールバック
+      try {
+        this.db.exec('ROLLBACK');
+      } catch {
+        // ロールバック失敗は無視
+      }
+
       this.inTransaction = false;
       throw error;
     }

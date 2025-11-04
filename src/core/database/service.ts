@@ -94,8 +94,8 @@ export class PerformanceDatabaseService {
   /**
    * トレンドデータを取得（非同期版）
    */
-  getTrendData(days = 30): Promise<TrendData[]> {
-    return this.repository.builds.getTrendData(days);
+  getTrendData(days = 30, orderBy: 'ASC' | 'DESC' = 'ASC'): Promise<TrendData[]> {
+    return this.repository.builds.getTrendData(days, orderBy);
   }
 
   /**

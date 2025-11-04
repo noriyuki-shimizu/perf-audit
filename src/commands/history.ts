@@ -12,8 +12,8 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
   const db = await PerformanceDatabaseService.instance();
 
   try {
-    const trendData = await db.getTrendData(options.days);
-    const recentBuilds = await db.getRecentBuilds({ limit: 10, orderBy: 'ASC' });
+    const trendData = await db.getTrendData(options.days, 'DESC');
+    const recentBuilds = await db.getRecentBuilds({ limit: 30, orderBy: 'DESC' });
     const clientTrendData = trendData.filter(data => data.type === 'client');
     const serverTrendData = trendData.filter(data => data.type === 'server');
 
@@ -38,9 +38,10 @@ export async function historyCommand(options: HistoryOptions): Promise<void> {
     }
 
     // Show trend data
-    Logger.section('Bundle Size Trend');
-    displayOverview(clientTrendData);
+    Logger.section('Server Bundle Size Trend');
     displayOverview(serverTrendData);
+    Logger.section('Client Bundle Size Trend');
+    displayOverview(clientTrendData);
 
     // Show recent builds
     Logger.section('Recent Builds');

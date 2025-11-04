@@ -120,11 +120,30 @@ function mergeConfig(defaultConfig: PerfAuditConfig, userConfig: Partial<PerfAud
 }
 
 /**
+ * Check if project uses ES modules
+ * @returns true if project uses ES modules, false if CommonJS
+ */
+function isESModuleProject(): boolean {
+  try {
+    const packageJsonPath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(packageJsonPath)) return false;
+
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    return packageJson.type === 'module';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Generate a sample configuration file
  * @param outputPath - 出力先のパス（デフォルトは 'perf-audit.config.js'）
  */
 export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): void {
-  const configContent = `module.exports = {
+  const isESModule = isESModuleProject();
+  const exportStatement = isESModule ? 'export default' : 'module.exports =';
+
+  const configContent = `${exportStatement} {
   // プロジェクト設定
   project: {
     // クライアントサイドの設定
@@ -185,7 +204,7 @@ export function generateConfigFile(outputPath: string = DEFAULT_CONFIG_FILE): vo
     { name: 'performance-tracker', enabled: true },
     { name: 'ci-reporter', enabled: true }
   ]
-}
+};
 `;
 
   fs.writeFileSync(outputPath, configContent);

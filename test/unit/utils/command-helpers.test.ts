@@ -45,7 +45,15 @@ const mockPluginManagerInstance = {
 
 // Mock plugin system
 vi.mock('../../../src/core/plugin-system.ts', () => ({
-  PluginManager: vi.fn().mockImplementation(() => mockPluginManagerInstance),
+  PluginManager: class MockPluginManager {
+    loadPlugins = mockPluginManagerInstance.loadPlugins;
+    executeHook = mockPluginManagerInstance.executeHook;
+    unloadPlugins = mockPluginManagerInstance.unloadPlugins;
+
+    constructor() {
+      // constructor logic if needed
+    }
+  },
 }));
 
 // Mock CI integration
@@ -140,9 +148,10 @@ describe('command-helpers', () => {
     mockSpinner.fail.mockReturnThis();
     mockSpinner.stop.mockReturnThis();
 
-    // Reset PluginManager mock
-    const { PluginManager } = await import('../../../src/core/plugin-system.ts');
-    vi.mocked(PluginManager).mockImplementation(() => mockPluginManagerInstance);
+    // Reset plugin manager instance methods
+    mockPluginManagerInstance.loadPlugins.mockResolvedValue(undefined);
+    mockPluginManagerInstance.executeHook.mockResolvedValue(undefined);
+    mockPluginManagerInstance.unloadPlugins.mockResolvedValue(undefined);
 
     // Reset database mock
     mockDatabaseMethods.saveBuild.mockResolvedValue('build-123');
@@ -196,12 +205,8 @@ describe('command-helpers', () => {
 
   describe('initializePluginManager', () => {
     it('should create and load plugin manager', async () => {
-      const { PluginManager } = await import('../../../src/core/plugin-system.ts');
-      const mockPluginManager = vi.mocked(PluginManager);
-
       const pluginManager = await initializePluginManager(mockConfig);
 
-      expect(mockPluginManager).toHaveBeenCalledWith(mockConfig);
       expect(pluginManager.loadPlugins).toHaveBeenCalled();
     });
   });

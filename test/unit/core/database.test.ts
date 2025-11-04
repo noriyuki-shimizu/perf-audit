@@ -221,7 +221,7 @@ describe('PerformanceDatabase', () => {
       const db = await PerformanceDatabaseService.instance();
       const result = await db.getTrendData(7);
 
-      expect(mockBuildsRepo.getTrendData).toHaveBeenCalledWith(7);
+      expect(mockBuildsRepo.getTrendData).toHaveBeenCalledWith(7, 'ASC');
       expect(result).toEqual(trendData);
     });
 
@@ -229,7 +229,7 @@ describe('PerformanceDatabase', () => {
       const db = await PerformanceDatabaseService.instance();
       db.getTrendData();
 
-      expect(mockBuildsRepo.getTrendData).toHaveBeenCalledWith(30);
+      expect(mockBuildsRepo.getTrendData).toHaveBeenCalledWith(30, 'ASC');
     });
   });
 

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // プロジェクト設定
   project: {
     // クライアントサイドの設定
