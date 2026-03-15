@@ -60,7 +60,7 @@ export class PluginManager extends EventEmitter {
         plugin = pluginModule.default || pluginModule;
       }
     } catch (error) {
-      throw new Error(`Could not load plugin ${name}: ${error}`);
+      throw new Error(`Could not load plugin ${name}: ${error}`, { cause: error });
     }
 
     // Create plugin context

@@ -125,7 +125,7 @@ const handleGetBuilds =
 const handleGetBuild =
   (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const build = await db.getBuild(parseInt(req.params.id));
+      const build = await db.getBuild(parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id));
       if (!build) {
         res.status(404).json({ error: 'Build not found' });
         return;
@@ -143,7 +143,10 @@ const handleGetBuild =
 const handleCompareBuild =
   (db: PerformanceDatabaseService) => async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const comparison = await db.getBuildComparison(parseInt(req.params.id1), parseInt(req.params.id2));
+      const comparison = await db.getBuildComparison(
+        parseInt(Array.isArray(req.params.id1) ? req.params.id1[0] : req.params.id1),
+        parseInt(Array.isArray(req.params.id2) ? req.params.id2[0] : req.params.id2),
+      );
       res.json(comparison);
     } catch {
       res.status(500).json({ error: 'Failed to compare builds' });

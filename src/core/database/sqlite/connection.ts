@@ -33,7 +33,9 @@ export class SqliteConnection implements DatabaseConnection {
       const stmt = this.db.prepare(query);
       return stmt.all(params) as T[];
     } catch (error) {
-      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -42,7 +44,9 @@ export class SqliteConnection implements DatabaseConnection {
       const stmt = this.db.prepare(query);
       return stmt.get(params) as T | undefined;
     } catch (error) {
-      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -55,7 +59,9 @@ export class SqliteConnection implements DatabaseConnection {
         changes: result.changes,
       };
     } catch (error) {
-      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -96,7 +102,9 @@ export class SqliteConnection implements DatabaseConnection {
     try {
       this.db.exec(query);
     } catch (error) {
-      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Query execution failed: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -104,7 +112,9 @@ export class SqliteConnection implements DatabaseConnection {
     try {
       await this.db.close();
     } catch (error) {
-      throw new Error(`Failed to close database: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to close database: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -116,7 +126,7 @@ export class SqliteConnection implements DatabaseConnection {
       // better-sqlite3のbackupは既にPromiseを返すので、awaitで待つ
       await this.db.backup(destinationPath);
     } catch (error) {
-      throw new Error(`Backup failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Backup failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
     }
   }
 
