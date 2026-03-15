@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import type { AuditResult } from '../../../src/types/config.ts';
 import { ReportGenerator } from '../../../src/utils/report-generator.ts';
 
@@ -52,11 +52,11 @@ describe('ReportGenerator', () => {
     },
   };
 
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
-  });
 
-  afterEach(() => {
+    await next();
+
     vi.restoreAllMocks();
   });
 

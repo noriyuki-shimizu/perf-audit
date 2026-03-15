@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_CONFIG_FILE } from '../../../src/constants/index.ts';
 import { generateConfigFile, loadConfig } from '../../../src/utils/config.ts';
 
@@ -33,16 +33,16 @@ const originalCwd = process.cwd;
 const mockCwd = vi.fn();
 
 describe('config utils', () => {
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
     mockPathJoin.mockImplementation((...args) => args.join('/'));
     mockPathResolve.mockImplementation((...args) => args.join('/'));
     mockCwd.mockReturnValue('/test/project');
     process.cwd = mockCwd;
     delete process.env.PERF_AUDIT_CONFIG_FILE;
-  });
 
-  afterEach(() => {
+    await next();
+
     process.cwd = originalCwd;
   });
 

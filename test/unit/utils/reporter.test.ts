@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import type { AuditResult, PerfAuditConfig } from '../../../src/types/config.ts';
 import { ConsoleReporter } from '../../../src/utils/reporter.ts';
 
@@ -49,13 +49,13 @@ describe('ConsoleReporter', () => {
     },
   };
 
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     reporter = new ConsoleReporter(mockConfig);
-  });
 
-  afterEach(() => {
+    await next();
+
     consoleSpy.mockRestore();
   });
 

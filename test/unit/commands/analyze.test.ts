@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { analyzeCommand } from '../../../src/commands/analyze.ts';
 import type { AnalyzeOptions } from '../../../src/types/commands.ts';
 
@@ -115,7 +115,7 @@ vi.mock('../../../src/utils/reporter.ts', () => ({
 describe('analyzeCommand', () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
     exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
@@ -129,9 +129,9 @@ describe('analyzeCommand', () => {
     });
     vi.mocked(initializePluginManager).mockResolvedValue(mockPluginManager);
     vi.mocked(saveBuildData).mockResolvedValue(undefined);
-  });
 
-  afterEach(() => {
+    await next()
+
     exitSpy.mockRestore();
   });
 

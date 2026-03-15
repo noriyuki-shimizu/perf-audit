@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { PerformanceDatabaseService } from '../../../src/core/database/index.ts';
 import type { AuditResult } from '../../../src/types/config.ts';
 import { CIIntegration } from '../../../src/utils/ci-integration.ts';
@@ -50,11 +50,11 @@ describe('CIIntegration', () => {
     },
   };
 
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
-  });
 
-  afterEach(() => {
+    await next();
+
     // Clean up environment variables
     delete process.env.GITHUB_ACTIONS;
     delete process.env.GITLAB_CI;
@@ -287,11 +287,11 @@ describe('CIIntegration', () => {
   describe('outputCIAnnotations', () => {
     let consoleSpy: ReturnType<typeof vi.spyOn>;
 
-    beforeEach(() => {
+    aroundEach(async (next) => {
       consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    });
 
-    afterEach(() => {
+      await next();
+
       consoleSpy.mockRestore();
     });
 

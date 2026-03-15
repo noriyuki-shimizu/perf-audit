@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { budgetCommand } from '../../../src/commands/budget.ts';
 import type { BudgetOptions } from '../../../src/types/commands.ts';
 
@@ -101,16 +101,16 @@ vi.mock('../../../src/utils/reporter.ts', () => ({
 describe('budgetCommand', () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
     exitSpy = vi.spyOn(process, 'exit').mockImplementation(vi.fn() as never);
 
     // Setup config mock
     const { loadConfig } = await import('../../../src/utils/config.ts');
     vi.mocked(loadConfig).mockResolvedValue(mockConfig);
-  });
 
-  afterEach(() => {
+    await next();
+
     exitSpy.mockRestore();
   });
 

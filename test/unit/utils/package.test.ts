@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { getPackageJson } from '../../../src/utils/package.ts';
 
 vi.setConfig({ testTimeout: 100 });
@@ -16,11 +16,11 @@ const mockJoin = vi.mocked(join);
 const mockFileURLToPath = vi.mocked(fileURLToPath);
 
 describe('getPackageJson', () => {
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
-  });
 
-  afterEach(() => {
+    await next();
+
     vi.restoreAllMocks();
   });
 

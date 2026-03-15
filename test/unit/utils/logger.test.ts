@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../src/utils/logger.ts';
 
 vi.setConfig({ testTimeout: 100 });
@@ -36,12 +36,12 @@ vi.mock('chalk', () => {
 describe('Logger', () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(() => {
+  aroundEach(async (next) => {
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.clearAllMocks();
-  });
 
-  afterEach(() => {
+    await next();
+
     vi.restoreAllMocks();
   });
 

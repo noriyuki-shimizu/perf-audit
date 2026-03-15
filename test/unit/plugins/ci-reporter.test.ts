@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aroundEach, describe, expect, it, vi } from 'vitest';
 import { ciReporterPlugin } from '../../../src/plugins/ci-reporter.ts';
 
 vi.setConfig({ testTimeout: 100 });
@@ -42,12 +42,12 @@ describe('ciReporterPlugin', () => {
     error: new Error('Test error'),
   };
 
-  beforeEach(() => {
+  aroundEach(async (next) => {
     vi.clearAllMocks();
     mockContext.store.clear();
-  });
 
-  afterEach(() => {
+    await next();
+
     // Clean up environment variables
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
@@ -77,11 +77,11 @@ describe('ciReporterPlugin', () => {
   });
 
   describe('afterAnalysis hook', () => {
-    beforeEach(() => {
+    aroundEach(async (next) => {
       vi.spyOn(console, 'log').mockImplementation(() => {});
-    });
 
-    afterEach(() => {
+      await next();
+
       vi.restoreAllMocks();
     });
 
@@ -135,11 +135,11 @@ describe('ciReporterPlugin', () => {
   });
 
   describe('onError hook', () => {
-    beforeEach(() => {
+    aroundEach(async (next) => {
       vi.spyOn(console, 'log').mockImplementation(() => {});
-    });
 
-    afterEach(() => {
+      await next();
+
       vi.restoreAllMocks();
     });
 
